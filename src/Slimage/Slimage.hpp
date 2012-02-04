@@ -64,12 +64,12 @@ struct Buffer
 		resize(n);
 	}
 
-	Buffer(K* begin, std::size_t size)
+	Buffer(std::size_t size, K* begin)
 	: size_(size), begin_(begin) {
 	}
 
-	Buffer(const boost::shared_array<K>& data, std::size_t size)
-	: size_(size), begin_(data.get()), data_(data) {
+	Buffer(std::size_t size, const boost::shared_array<K>& data)
+	: size_(size), data_(data), begin_(data.get()) {
 	}
 
 	std::size_t size() const {
@@ -89,6 +89,7 @@ struct Buffer
 		BOOST_ASSERT(n > 0);
 		if(size_ != n) {
 			// TODO what if data_ is not null and size matches?
+			size_ = n;
 			data_.reset(new K[size_]);
 			begin_ = data_.get();
 		}
@@ -144,7 +145,10 @@ namespace detail
 	template<unsigned int CC>
 	struct PixelTraitsFixed
 	{
-		PixelTraitsFixed(unsigned int cc=CC) {
+		PixelTraitsFixed() {
+		}
+
+		PixelTraitsFixed(unsigned int cc) {
 			BOOST_ASSERT(cc == CC);
 		}
 
@@ -208,12 +212,20 @@ struct ImageBase
 		return buffer_;
 	}
 
+	std::size_t size() const {
+		return buffer_.size();
+	}
+
 	K* begin() const {
 		return buffer_.begin();
 	}
 
 	K* end() const {
 		return buffer_.end();
+	}
+
+	K& operator[](std::size_t i) const {
+		return *(begin() + i);
 	}
 
 	void fill(K v) const {
@@ -330,20 +342,16 @@ struct Image
 		return this->begin() + getIndex(x, y, c);
 	}
 
+	K* scanline(IndexType y) const {
+		return pointer(0, y, 0);
+	}
+
 	K& at(IndexType x, IndexType y, IndexType c=0) const {
 		return *(pointer(x, y, c));
 	}
 
 	K& operator()(IndexType x, IndexType y, IndexType c=0) const {
 		return at(x, y, c);
-	}
-
-	K& operator[](IndexType i) const {
-		return *(this->begin() + i);
-	}
-
-	K* scanline(IndexType y) const {
-		return pointer(0, y, 0);
 	}
 
 private:
@@ -402,7 +410,7 @@ ImagePtr Ptr(const Image<K,ChannelTraits>& img)
 constexpr unsigned int Dynamic = 0;
 
 template<typename K, unsigned int CC = Dynamic>
-const Image<K, typename detail::PixelTraitsSelector<CC>::Result>& Ref(const ImagePtr& ptr)
+Image<K, typename detail::PixelTraitsSelector<CC>::Result> Ref(const ImagePtr& ptr)
 {
 	typedef detail::ImagePtrImpl<K, typename detail::PixelTraitsSelector<CC>::Result> Type;
 	Type* x = dynamic_cast<Type*>(ptr.get());
