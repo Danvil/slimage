@@ -431,6 +431,17 @@ bool IsRef(const ImagePtr& ptr)
 }
 
 //----------------------------------------------------------------------------//
+
+template<typename CT>
+Image<unsigned char,CT> Convert_ub_2_f(const Image<float,CT>& u, float scl = 1.0f) {
+	Image<unsigned char,CT> v(u.width(), u.height());
+	for(unsigned int i=0; i<u.size(); i++) {
+		v[i] = std::max(0, std::min(255, int(scl * 255.0f * u[i])));
+	}
+	return v;
+}
+
+//----------------------------------------------------------------------------//
 }
 //----------------------------------------------------------------------------//
 #endif
