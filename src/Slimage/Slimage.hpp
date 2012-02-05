@@ -12,6 +12,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/assert.hpp>
 #include <algorithm>
+#include <string>
 #include <stdint.h>
 //----------------------------------------------------------------------------//
 namespace slimage {
@@ -440,6 +441,16 @@ Image<unsigned char,CT> Convert_ub_2_f(const Image<float,CT>& u, float scl = 1.0
 	}
 	return v;
 }
+
+//----------------------------------------------------------------------------//
+
+void Save(const ImagePtr& img, const std::string& filename);
+
+void Save(const Image1ub& img, const std::string& filename);
+
+void Save(const Image3ub& img, const std::string& filename);
+
+void Save(const Image4ub& img, const std::string& filename);
 
 //----------------------------------------------------------------------------//
 }
