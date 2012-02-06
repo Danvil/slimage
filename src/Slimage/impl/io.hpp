@@ -18,8 +18,8 @@
 namespace slimage
 {
 
-	namespace impl
-	{
+//	namespace impl
+//	{
 
 		void Save(const ImagePtr& img, const std::string& filename) {
 			QImage* qimg = ConvertToQt(img);
@@ -40,7 +40,19 @@ namespace slimage
 			Save(Ptr(img), filename);
 		}
 
-	}
+		ImagePtr Load(const std::string& filename) {
+			return ConvertFromQt(QImage(QString::fromStdString(filename)));
+		}
+
+		Image1ub Load1ub(const std::string& filename) {
+			return Ref<unsigned char, 1>(Load(filename));
+		}
+
+		Image4ub Load4ub(const std::string& filename) {
+			return Ref<unsigned char, 4>(Load(filename));
+		}
+
+//	}
 
 }
 

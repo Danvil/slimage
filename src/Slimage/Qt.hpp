@@ -104,6 +104,36 @@ QImage* ConvertToQt(const ImagePtr& image)
 	}
 }
 
+inline
+ImagePtr ConvertFromQt(const QImage& qimg)
+{
+	if(qimg.format() == QImage::Format_Indexed8) {
+		unsigned int w = qimg.width();
+		unsigned int h = qimg.height();
+		Image1ub img(w, h);
+		for(unsigned int i=0; i<h; i++) {
+			const unsigned char* src = qimg.scanLine(i);
+			unsigned char* dst = img.scanline(i);
+			std::copy(src, src+w, dst);
+		}
+		return Ptr(img);
+	}
+	else if(qimg.format() == QImage::Format_ARGB32) {
+		unsigned int h = qimg.height();
+		unsigned int w = qimg.width();
+		Image4ub img(w, h);
+		for(unsigned int i=0; i<h; i++) {
+			const unsigned char* src = qimg.scanLine(i);
+			unsigned char* dst = img.scanline(i);
+			detail::copy_RGBA_to_BGRA_8bit(src, src + 4*w, dst);
+		}
+		return Ptr(img);
+	}
+	else {
+		return ImagePtr();
+	}
+}
+
 //----------------------------------------------------------------------------//
 }
 //----------------------------------------------------------------------------//
