@@ -434,9 +434,14 @@ namespace detail
 			return px;
 		}
 
+		struct OpAdd {
+			PixelAccess<K,CC> x;
+			PixelAccess<K,CC> y;
+		};
+
 		struct OpMult {
-			K scl;
-			PixelAccess<K,CC> src;
+			K s;
+			PixelAccess<K,CC> x;
 		};
 
 		PixelAccess& operator=(K v) {
@@ -453,7 +458,14 @@ namespace detail
 
 		PixelAccess& operator=(const OpMult& v) {
 			for(unsigned int i=0; i<CC; i++) {
-				p[i] = v.scl * v.p[i];
+				p[i] = v.s * v.x[i];
+			}
+			return *this;
+		}
+
+		PixelAccess& operator=(const OpAdd& v) {
+			for(unsigned int i=0; i<CC; i++) {
+				p[i] = v.x[i] * v.y[i];
 			}
 			return *this;
 		}
@@ -478,6 +490,10 @@ namespace detail
 
 		friend OpMult operator*(K s, const PixelAccess<K,CC>& x) {
 			return OpMult{s, x};
+		}
+
+		friend OpMult operator+(const PixelAccess<K,CC>& x, const PixelAccess<K,CC>& y) {
+			return OpMult{x, y};
 		}
 
 	};
