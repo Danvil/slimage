@@ -149,9 +149,13 @@ namespace detail
 		PixelTraitsFixed() {
 		}
 
+#ifdef NDEBUG
+		PixelTraitsFixed(unsigned int) {}
+#else
 		PixelTraitsFixed(unsigned int cc) {
-			BOOST_ASSERT(cc == CC);
+			assert(cc == CC);
 		}
+#endif
 
 		unsigned int channelCount() const {
 			return CC;
@@ -182,19 +186,21 @@ namespace detail
 	};
 }
 
-template<typename K, typename ChannelTraits=detail::PixelTraitsDynamic>
+//----------------------------------------------------------------------------//
+
+template<typename K, unsigned int CC>
 struct ImageBase
-: public ChannelTraits
+: public detail::PixelTraitsSelector<CC>::Result
 {
 	typedef K ElementType;
 
-	typedef ChannelTraits ChannelTraitsType;
+	typedef typename detail::PixelTraitsSelector<CC>::Result ChannelTraitsType;
 
 	ImageBase()
 	{}
 
 	ImageBase(unsigned int cc)
-	: ChannelTraits(cc)
+	: ChannelTraitsType(cc)
 	{}
 
 	ImageBase(const Buffer<K>& b)
@@ -202,7 +208,7 @@ struct ImageBase
 	{}
 
 	ImageBase(unsigned int cc, const Buffer<K>& b)
-	: ChannelTraits(cc), buffer_(b)
+	: ChannelTraitsType(cc), buffer_(b)
 	{}
 
 	Buffer<K>& buffer() {
@@ -249,12 +255,247 @@ private:
 	Buffer<K> buffer_;
 };
 
-template<typename K, typename ChannelTraits=detail::PixelTraitsDynamic>
-struct Image
-: public ImageBase<K,ChannelTraits>
+//----------------------------------------------------------------------------//
+
+//namespace detail
+//{
+//	template<typename K, unsigned int N>
+//	struct UnionData {
+//		K values[N];
+//	};
+//
+//	template<typename K>
+//	struct UnionData<K,1> {
+//		union {
+//			K grey;
+//			K values[1];
+//		};
+//	};
+//
+//	template<typename K>
+//	struct UnionData<K,3> {
+//		union {
+//			K r, g, b;
+//			K values[3];
+//		};
+//	};
+//
+//	template<typename K>
+//	struct UnionData<K,4> {
+//		union {
+//			K r, g, b, a;
+//			K values[4];
+//		};
+//	};
+//}
+
+template<typename K, unsigned int N>
+struct Pixel
 {
-	typedef ImageBase<K,ChannelTraits> BaseType;
+	typedef Pixel<K,N> SelfType;
+
+	K values[N];
+
+	std::size_t size() const {
+		return N;
+	}
+
+	const K operator[](unsigned int i) const {
+		assert(i < N);
+		return values[i];
+	}
+
+	K& operator[](unsigned int i) {
+		assert(i < N);
+		return values[i];
+	}
+
+	SelfType& operator+=(const SelfType& x) {
+		for(unsigned int i=0; i<N; i++) {
+			values[i] += x[i];
+		}
+		return *this;
+	}
+
+	friend SelfType operator+(const SelfType& x, const SelfType& y) {
+		SelfType u = x;
+		u += y;
+		return u;
+	}
+
+};
+
+// FIXME implement
+template<typename K>
+struct Pixel<K,0>;
+
+template<typename K>
+struct Pixel<K,1>
+{
+	K value;
+
+	std::size_t size() const {
+		return 1;
+	}
+
+	const K operator[](unsigned int) const {
+		return value;
+	}
+
+	K& operator[](unsigned int) {
+		return value;
+	}
+
+	operator K() {
+		return value;
+	}
+
+	const K intensity() const {
+		return value;
+	}
+
+	K& intensity() {
+		return value;
+	}
+
+};
+
+template<typename K>
+struct Pixel<K,3>
+{
+	K values[3];
+
+	std::size_t size() const {
+		return 3;
+	}
+
+	const K operator[](unsigned int i) const {
+		assert(i < 3);
+		return values[i];
+	}
+
+	K& operator[](unsigned int i) {
+		assert(i < 3);
+		return values[i];
+	}
+
+	const K red() const {
+		return values[0];
+	}
+
+	K& red() {
+		return values[0];
+	}
+
+	const K green() const {
+		return values[1];
+	}
+
+	K& green() {
+		return values[1];
+	}
+
+	const K blue() const {
+		return values[2];
+	}
+
+	K& blue() {
+		return values[2];
+	}
+
+};
+
+
+typedef Pixel<unsigned char, 1> Pixel1ub;
+typedef Pixel<unsigned char, 3> Pixel3ub;
+typedef Pixel<unsigned char, 4> Pixel4ub;
+typedef Pixel<float, 1> Pixel1f;
+typedef Pixel<float, 3> Pixel3f;
+typedef Pixel<float, 4> Pixel4f;
+
+//----------------------------------------------------------------------------//
+
+namespace detail
+{
+	template<typename K, unsigned int CC>
+	struct PixelAccess
+	{
+		K* p;
+
+		operator K() const {
+			return *p;
+		}
+
+		operator Pixel<K,CC>() const {
+			Pixel<K,CC> px;
+			for(unsigned int i=0; i<CC; i++) {
+				px[i] = p[i];
+			}
+			return px;
+		}
+
+		struct OpMult {
+			K scl;
+			PixelAccess<K,CC> src;
+		};
+
+		PixelAccess& operator=(K v) {
+			p[0] = v;
+			return *this;
+		}
+
+		PixelAccess& operator=(const Pixel<K,CC>& v) {
+			for(unsigned int i=0; i<CC; i++) {
+				p[i] = v[i];
+			}
+			return *this;
+		}
+
+		PixelAccess& operator=(const OpMult& v) {
+			for(unsigned int i=0; i<CC; i++) {
+				p[i] = v.scl * v.p[i];
+			}
+			return *this;
+		}
+
+		K& operator[](unsigned int i) const {
+			return p[i];
+		}
+
+		PixelAccess& operator+=(const PixelAccess<K,CC>& x) {
+			for(unsigned int i=0; i<CC; i++) {
+				p[i] += x[i];
+			}
+			return *this;
+		}
+
+		PixelAccess& operator+=(K x) {
+			for(unsigned int i=0; i<CC; i++) {
+				p[i] += x;
+			}
+			return *this;
+		}
+
+		friend OpMult operator*(K s, const PixelAccess<K,CC>& x) {
+			return OpMult{s, x};
+		}
+
+	};
+
+	template<typename K>
+	struct PixelAccess<K,0>;
+}
+
+//----------------------------------------------------------------------------//
+
+template<typename K, unsigned int CC>
+struct Image
+: public ImageBase<K,CC>
+{
+	typedef ImageBase<K,CC> BaseType;
 	typedef unsigned int IndexType;
+
+	typedef Pixel<K,CC> PixelType;
 
 	Image()
 	: width_(0), height_(0)
@@ -325,6 +566,10 @@ struct Image
 		return getElementCount() == 0;
 	}
 
+	operator bool() const {
+		return !isNull();
+	}
+
 	/** Size in bytes
 	 * @return width * height * channel_count * sizeof(K)
 	 */
@@ -347,31 +592,33 @@ struct Image
 		return pointer(0, y, 0);
 	}
 
-	K& at(IndexType x, IndexType y, IndexType c=0) const {
-		return *(pointer(x, y, c));
-	}
+//	K& at(IndexType x, IndexType y, IndexType c=0) const {
+//		return *(pointer(x, y, c));
+//	}
 
-	K& operator()(IndexType x, IndexType y, IndexType c=0) const {
-		return at(x, y, c);
+	detail::PixelAccess<K,CC> operator()(IndexType x, IndexType y) const {
+		return detail::PixelAccess<K,CC>{ pointer(x,y) };
 	}
 
 private:
 	IndexType width_, height_;
 };
 
-typedef Image<unsigned char> ImageXub;
-typedef Image<uint16_t> ImageXui16;
-typedef Image<float> ImageXf;
-typedef Image<double> ImageXd;
+typedef Image<unsigned char,0> ImageXub;
+typedef Image<uint16_t,0> ImageXui16;
+typedef Image<float,0> ImageXf;
+typedef Image<double,0> ImageXd;
 
-typedef Image<unsigned char, detail::PixelTraitsFixed<1> > Image1ub;
-typedef Image<unsigned char, detail::PixelTraitsFixed<3> > Image3ub;
-typedef Image<unsigned char, detail::PixelTraitsFixed<4> > Image4ub;
-typedef Image<uint16_t, detail::PixelTraitsFixed<1> > Image1ui16;
-typedef Image<float, detail::PixelTraitsFixed<1> > Image1f;
-typedef Image<float, detail::PixelTraitsFixed<3> > Image3f;
-typedef Image<double, detail::PixelTraitsFixed<1> > Image1d;
-typedef Image<double, detail::PixelTraitsFixed<3> > Image3d;
+typedef Image<unsigned char, 1> Image1ub;
+typedef Image<unsigned char, 3> Image3ub;
+typedef Image<unsigned char, 4> Image4ub;
+typedef Image<uint16_t, 1> Image1ui16;
+typedef Image<float, 1> Image1f;
+typedef Image<float, 3> Image3f;
+typedef Image<float, 4> Image4f;
+typedef Image<double, 1> Image1d;
+typedef Image<double, 3> Image3d;
+typedef Image<double, 4> Image4d;
 
 //----------------------------------------------------------------------------//
 
@@ -382,11 +629,11 @@ namespace detail
 		virtual ~ImageContainerPtr() {}
 	};
 
-	template<typename K, typename ChannelTraits=detail::PixelTraitsDynamic>
+	template<typename K, unsigned int CC>
 	struct ImagePtrImpl
 	: public ImageContainerPtr
 	{
-		typedef Image<K,ChannelTraits> Type;
+		typedef Image<K,CC> Type;
 
 		ImagePtrImpl(const Type& img)
 		: image_(img) {}
@@ -402,18 +649,16 @@ namespace detail
 
 typedef boost::shared_ptr<detail::ImageContainerPtr> ImagePtr;
 
-template<typename K, typename ChannelTraits>
-ImagePtr Ptr(const Image<K,ChannelTraits>& img)
+template<typename K, unsigned int CC>
+ImagePtr Ptr(const Image<K,CC>& img)
 {
-	return ImagePtr(new detail::ImagePtrImpl<K,ChannelTraits>(img));
+	return ImagePtr(new detail::ImagePtrImpl<K,CC>(img));
 }
 
-constexpr unsigned int Dynamic = 0;
-
-template<typename K, unsigned int CC = Dynamic>
-Image<K, typename detail::PixelTraitsSelector<CC>::Result> Ref(const ImagePtr& ptr)
+template<typename K, unsigned int CC>
+Image<K, CC> Ref(const ImagePtr& ptr)
 {
-	typedef detail::ImagePtrImpl<K, typename detail::PixelTraitsSelector<CC>::Result> Type;
+	typedef detail::ImagePtrImpl<K, CC> Type;
 	Type* x = dynamic_cast<Type*>(ptr.get());
 	if(x == 0) {
 		throw "Invalid type";
@@ -423,28 +668,28 @@ Image<K, typename detail::PixelTraitsSelector<CC>::Result> Ref(const ImagePtr& p
 	}
 }
 
-template<typename K, unsigned int CC = Dynamic>
+template<typename K, unsigned int CC>
 bool IsRef(const ImagePtr& ptr)
 {
-	typedef detail::ImagePtrImpl<K, typename detail::PixelTraitsSelector<CC>::Result> Type;
+	typedef detail::ImagePtrImpl<K, CC> Type;
 	Type* x = dynamic_cast<Type*>(ptr.get());
 	return (x != 0);
 }
 
 //----------------------------------------------------------------------------//
 
-template<typename CT>
-Image<float,CT> Convert_ub_2_f(const Image<unsigned char,CT>& u) {
-	Image<float,CT> v(u.width(), u.height());
+template<unsigned int CC>
+Image<float,CC> Convert_ub_2_f(const Image<unsigned char,CC>& u) {
+	Image<float,CC> v(u.width(), u.height());
 	for(unsigned int i=0; i<u.size(); i++) {
 		v[i] = float(u[i]) / 255.0f;
 	}
 	return v;
 }
 
-template<typename CT>
-Image<unsigned char,CT> Convert_f_2_ub(const Image<float,CT>& u, float scl = 1.0f) {
-	Image<unsigned char,CT> v(u.width(), u.height());
+template<unsigned int CC>
+Image<unsigned char,CC> Convert_f_2_ub(const Image<float,CC>& u, float scl = 1.0f) {
+	Image<unsigned char,CC> v(u.width(), u.height());
 	for(unsigned int i=0; i<u.size(); i++) {
 		v[i] = std::max(0, std::min(255, int(scl * 255.0f * u[i])));
 	}
