@@ -138,7 +138,7 @@ namespace detail
 }
 
 template<typename I1, typename F>
-void ParallelProcess(const I1& img1, F f, ThreadingOptions opt)
+void ParallelProcess(const I1& img1, F f, ThreadingOptions opt=ThreadingOptions())
 {
 	size_t pixel_count = img1.getPixelCount();
 	if(opt.threads() == 1) {
@@ -167,7 +167,7 @@ void ParallelProcess(const I1& img1, F f, ThreadingOptions opt)
 }
 
 template<typename I1, typename I2, typename F>
-void ParallelProcess(const I1& img1, const I2& img2, F f, ThreadingOptions opt)
+void ParallelProcess(const I1& img1, const I2& img2, F f, ThreadingOptions opt=ThreadingOptions())
 {
 	size_t pixel_count = img1.getPixelCount();
 	if(img2.getPixelCount() != pixel_count) {
@@ -189,12 +189,12 @@ void ParallelProcess(const I1& img1, const I2& img2, F f, ThreadingOptions opt)
 			if(i + 1 == opt.threads()) {
 				// last thread must do the rest
 				img1_sub = img1.subFromTo(i*Dcc1, img1.getElementCount());
-				img2_sub = img1.subFromTo(i*Dcc2, img1.getElementCount());
+				img2_sub = img2.subFromTo(i*Dcc2, img2.getElementCount());
 			}
 			else {
 				// select the work chunk
 				img1_sub = img1.sub(i*Dcc1, Dcc1);
-				img2_sub = img1.sub(i*Dcc2, Dcc2);
+				img2_sub = img2.sub(i*Dcc2, Dcc2);
 			}
 			pool().schedule(boost::bind(&detail::Process<typename I1::BaseType,typename I2::BaseType,F>, img1_sub, img2_sub, f));
 		}
@@ -229,14 +229,14 @@ void ParallelProcess(const I1& img1, const I2& img2, const I3& img3, F f, Thread
 			if(i + 1 == opt.threads()) {
 				// last thread must do the rest
 				img1_sub = img1.subFromTo(i*Dcc1, img1.getElementCount());
-				img2_sub = img1.subFromTo(i*Dcc2, img1.getElementCount());
-				img3_sub = img1.subFromTo(i*Dcc3, img1.getElementCount());
+				img2_sub = img2.subFromTo(i*Dcc2, img2.getElementCount());
+				img3_sub = img3.subFromTo(i*Dcc3, img3.getElementCount());
 			}
 			else {
 				// select the work chunk
 				img1_sub = img1.sub(i*Dcc1, Dcc1);
-				img2_sub = img1.sub(i*Dcc2, Dcc2);
-				img3_sub = img1.sub(i*Dcc3, Dcc3);
+				img2_sub = img2.sub(i*Dcc2, Dcc2);
+				img3_sub = img3.sub(i*Dcc3, Dcc3);
 			}
 			pool().schedule(boost::bind(&detail::Process<typename I1::BaseType,typename I2::BaseType,typename I3::BaseType,F>, img1_sub, img2_sub, img3_sub, f));
 		}
