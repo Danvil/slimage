@@ -5,8 +5,8 @@
  *      Author: david
  */
 
-#ifndef PARALLEL_H_
-#define PARALLEL_H_
+#ifndef SLIMAGE_PARALLEL_H_
+#define SLIMAGE_PARALLEL_H_
 
 #include "Slimage.hpp"
 #include <Danvil/Tools/CpuCount.h>

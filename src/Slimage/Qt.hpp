@@ -90,13 +90,13 @@ QImage* ConvertToQt(const Image4ub& img)
 inline
 QImage* ConvertToQt(const ImagePtr& image)
 {
-	if(IsRef<unsigned char, 1>(image)) {
+	if(HasType<unsigned char, 1>(image)) {
 		return ConvertToQt(Ref<unsigned char, 1>(image));
 	}
-	else if(IsRef<unsigned char, 3>(image)) {
+	else if(HasType<unsigned char, 3>(image)) {
 		return ConvertToQt(Ref<unsigned char, 3>(image));
 	}
-	else if(IsRef<unsigned char, 4>(image)) {
+	else if(HasType<unsigned char, 4>(image)) {
 		return ConvertToQt(Ref<unsigned char, 4>(image));
 	}
 	else {

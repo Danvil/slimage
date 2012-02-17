@@ -449,6 +449,13 @@ namespace detail
 			return *this;
 		}
 
+//		PixelAccess& operator=(const PixelAccess<K,CC>& v) {
+//			for(unsigned int i=0; i<CC; i++) {
+//				p[i] = v[i];
+//			}
+//			return *this;
+//		}
+
 		PixelAccess& operator=(const Pixel<K,CC>& v) {
 			for(unsigned int i=0; i<CC; i++) {
 				p[i] = v[i];
@@ -593,10 +600,15 @@ struct Image
 		return std::size_t(getElementCount()) * sizeof(K);
 	}
 
+	/** Returns true if (x,y,c) is a valid pixel/channel index */
+	bool isValidIndex(int x, int y, int c=0) const {
+		return 0 <= x && x < int(width())
+				&& 0 <= y && y < int(height())
+				&& 0 <= c && c < int(this->channelCount());
+	}
+
 	IndexType getIndex(IndexType x, IndexType y, IndexType c=0) const {
-		BOOST_ASSERT(/*0 <= x &&*/ x < width());
-		BOOST_ASSERT(/*0 <= y &&*/ y < height());
-		BOOST_ASSERT(/*0 <= c &&*/ c < this->channelCount());
+		BOOST_ASSERT(isValidIndex(x,y,c));
 		return this->channelCount() * (x + y*width()) + c;
 	}
 
@@ -614,6 +626,10 @@ struct Image
 
 	detail::PixelAccess<K,CC> operator()(IndexType x, IndexType y) const {
 		return detail::PixelAccess<K,CC>{ pointer(x,y) };
+	}
+
+	detail::PixelAccess<K,CC> operator()(IndexType i) const {
+		return detail::PixelAccess<K,CC>{ this->begin() + i*CC };
 	}
 
 private:
@@ -685,7 +701,7 @@ Image<K, CC> Ref(const ImagePtr& ptr)
 }
 
 template<typename K, unsigned int CC>
-bool IsRef(const ImagePtr& ptr)
+bool HasType(const ImagePtr& ptr)
 {
 	typedef detail::ImagePtrImpl<K, CC> Type;
 	Type* x = dynamic_cast<Type*>(ptr.get());
