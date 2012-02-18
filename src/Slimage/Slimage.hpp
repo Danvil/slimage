@@ -101,6 +101,12 @@ struct Buffer
 		std::fill(begin(), end(), v);
 	}
 
+	void scale(K v) const {
+		for(K* p=begin(); p!=end(); p++) {
+			*p *= v;
+		}
+	}
+
 	/** Creates a sub buffer with same memory */
 	Buffer sub(size_t pos, size_t n) const {
 		BOOST_ASSERT(pos + n <= size_);
@@ -237,6 +243,10 @@ struct ImageBase
 
 	void fill(K v) const {
 		buffer_.fill(v);
+	}
+
+	void scale(K v) const {
+		buffer_.scale(v);
 	}
 
 	void copyFrom(const K* mem) {
