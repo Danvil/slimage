@@ -18,6 +18,10 @@ namespace slimage {
 template<typename K, unsigned int CHANNELS>
 void PaintLine(const slimage::Image<K, CHANNELS>& img, int x0, int y0, int x1, int y1, const Pixel<K, CHANNELS>& color)
 {
+//	assert(0 <= x0 && x0 < img.width());
+//	assert(0 <= x1 && x1 < img.width());
+//	assert(0 <= y0 && y0 < img.height());
+//	assert(0 <= y1 && y1 < img.height());
 	// taken from http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
 	int Dx = x1 - x0;
 	int Dy = y1 - y0;
@@ -66,6 +70,14 @@ void PaintLine(const slimage::Image<K, CHANNELS>& img, int x0, int y0, int x1, i
 	}
 }
 
+template<typename K, unsigned int CHANNELS>
+void PaintEllipse(const slimage::Image<K, CHANNELS>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<K, CHANNELS>& color)
+{
+	PaintLine(img, cx+ux+vx, cy+uy+vy, cx+ux-vx, cy+uy-vy, color);
+	PaintLine(img, cx+ux-vx, cy+uy-vy, cx-ux-vx, cy-uy-vy, color);
+	PaintLine(img, cx-ux-vx, cy-uy-vy, cx-ux+vx, cy-uy+vy, color);
+	PaintLine(img, cx-ux+vx, cy-uy+vy, cx+ux+vx, cy+uy+vy, color);
+}
 
 //----------------------------------------------------------------------------//
 }
