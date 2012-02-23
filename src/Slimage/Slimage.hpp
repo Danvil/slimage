@@ -498,6 +498,13 @@ namespace detail
 			return *this;
 		}
 
+		PixelAccess& operator-=(const PixelAccess<K,CC>& x) {
+			for(unsigned int i=0; i<CC; i++) {
+				p[i] -= x[i];
+			}
+			return *this;
+		}
+
 		PixelAccess& operator+=(K x) {
 			for(unsigned int i=0; i<CC; i++) {
 				p[i] += x;
@@ -736,6 +743,25 @@ Image<unsigned char,CC> Convert_f_2_ub(const Image<float,CC>& u, float scl = 1.0
 		v[i] = std::max(0, std::min(255, int(scl * 255.0f * u[i])));
 	}
 	return v;
+}
+
+template<typename K, unsigned int CC>
+Image<K,CC> operator-(const Image<K,CC>& a, const Image<K,CC>& b) {
+	assert(a.getPixelCount() == b.getPixelCount());
+	Image<K,CC> c = a.clone();
+	for(unsigned int i=0; i<c.getPixelCount(); i++) {
+		c(i) -= b(i);
+	}
+	return c;
+}
+
+template<typename K, unsigned int CC>
+Image<K,CC> abs(const Image<K,CC>& a) {
+	Image<K,CC> c(a.width(), a.height());
+	for(unsigned int i=0; i<c.size(); i++) {
+		c[i] = std::abs(a[i]);
+	}
+	return c;
 }
 
 //----------------------------------------------------------------------------//
