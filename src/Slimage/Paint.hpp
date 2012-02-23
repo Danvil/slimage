@@ -14,6 +14,68 @@
 namespace slimage {
 //----------------------------------------------------------------------------//
 
+template<typename K, unsigned int CHANNELS>
+void PaintPoint(const slimage::Image<K, CHANNELS>& img, int px, int py, const Pixel<K, CHANNELS>& color, int size=1)
+{
+	if(px < 0 || int(img.width()) <= px || py < 0 || int(img.height()) <= py) {
+		return;
+	}
+	if(size == 1) {
+		img(px, py) = color;
+
+	}
+	else if(size == 2) {
+		// paint a star
+		//    X
+		//   X X
+		//    X
+		if(1 <= px) {
+			img(px-1, py) = color;
+		}
+		if(px + 1 < int(img.width())) {
+			img(px+1, py) = color;
+		}
+		if(1 <= py) {
+			img(px, py-1) = color;
+		}
+		if(py + 1 < int(img.height())) {
+			img(px, py+1) = color;
+		}
+	}
+	else {
+		// paint a circle
+		//    X
+		//   X X
+		//  X   X
+		//   X X
+		//    X
+		if(1 <= px && 1 <= py) {
+			img(px-1, py-1) = color;
+		}
+		if(1 <= px && py + 1 < int(img.height())) {
+			img(px-1, py+1) = color;
+		}
+		if(px + 1 < int(img.width()) && 1 <= py) {
+			img(px+1, py-1) = color;
+		}
+		if(px + 1 < int(img.width()) && py + 1 < int(img.height())) {
+			img(px+1, py+1) = color;
+		}
+		if(2 <= px) {
+			img(px-2, py) = color;
+		}
+		if(px + 2 < int(img.width())) {
+			img(px+2, py) = color;
+		}
+		if(2 <= py) {
+			img(px, py-2) = color;
+		}
+		if(py + 2 < int(img.height())) {
+			img(px, py+2) = color;
+		}
+	}
+}
+
 /** Paints a line */
 template<typename K, unsigned int CHANNELS>
 void PaintLine(const slimage::Image<K, CHANNELS>& img, int x0, int y0, int x1, int y1, const Pixel<K, CHANNELS>& color)
@@ -73,10 +135,42 @@ void PaintLine(const slimage::Image<K, CHANNELS>& img, int x0, int y0, int x1, i
 template<typename K, unsigned int CHANNELS>
 void PaintEllipse(const slimage::Image<K, CHANNELS>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<K, CHANNELS>& color)
 {
-	PaintLine(img, cx+ux+vx, cy+uy+vy, cx+ux-vx, cy+uy-vy, color);
-	PaintLine(img, cx+ux-vx, cy+uy-vy, cx-ux-vx, cy-uy-vy, color);
-	PaintLine(img, cx-ux-vx, cy-uy-vy, cx-ux+vx, cy-uy+vy, color);
-	PaintLine(img, cx-ux+vx, cy-uy+vy, cx+ux+vx, cy+uy+vy, color);
+//	PaintLine(img, cx+ux+vx, cy+uy+vy, cx+ux-vx, cy+uy-vy, color);
+//	PaintLine(img, cx+ux-vx, cy+uy-vy, cx-ux-vx, cy-uy-vy, color);
+//	PaintLine(img, cx-ux-vx, cy-uy-vy, cx-ux+vx, cy-uy+vy, color);
+//	PaintLine(img, cx-ux+vx, cy-uy+vy, cx+ux+vx, cy+uy+vy, color);
+	const unsigned int N = 16;
+	int last_x = cx + ux;
+	int last_y = cy + uy;
+	for(unsigned int i=1; i<=N; i++) {
+		float phi = static_cast<float>(i) / static_cast<float>(N) * 2.0f * M_PI;
+		float cp = std::cos(phi);
+		float sp = std::sin(phi);
+		int x = cx + static_cast<int>(cp*static_cast<float>(ux) + sp*static_cast<float>(vx));
+		int y = cy + static_cast<int>(cp*static_cast<float>(uy) + sp*static_cast<float>(vy));
+		PaintLine(img, last_x, last_y, x, y, color);
+		last_x = x;
+		last_y = y;
+	}
+}
+
+template<typename K, unsigned int CHANNELS>
+void FillEllipse(const slimage::Image<K, CHANNELS>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<K, CHANNELS>& color)
+{
+	// FIXME implement filling!
+	const unsigned int N = 16;
+	int last_x = cx + ux;
+	int last_y = cy + uy;
+	for(unsigned int i=1; i<=N; i++) {
+		float phi = static_cast<float>(i) / static_cast<float>(N) * 2.0f * M_PI;
+		float cp = std::cos(phi);
+		float sp = std::sin(phi);
+		int x = cx + static_cast<int>(cp*static_cast<float>(ux) + sp*static_cast<float>(vx));
+		int y = cy + static_cast<int>(cp*static_cast<float>(uy) + sp*static_cast<float>(vy));
+		PaintLine(img, last_x, last_y, x, y, color);
+		last_x = x;
+		last_y = y;
+	}
 }
 
 //----------------------------------------------------------------------------//
