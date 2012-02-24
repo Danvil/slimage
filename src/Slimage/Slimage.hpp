@@ -433,6 +433,7 @@ namespace detail
 		K* p;
 
 		operator K() const {
+			static_assert(CC == 1, "slimage::PixelAccess: operator K() only valid if channel count is 1!");
 			return *p;
 		}
 
@@ -444,17 +445,59 @@ namespace detail
 			return px;
 		}
 
+		const K operator[](unsigned int i) const {
+			return p[i];
+		}
+
+		K& operator[](unsigned int i) {
+			return p[i];
+		}
+
+		template<unsigned int N>
 		struct OpAdd {
-			PixelAccess<K,CC> x;
-			PixelAccess<K,CC> y;
+			PixelAccess<K,CC> summands[N];
+			const PixelAccess<K,CC>& operator[](unsigned int i) const {
+				return summands[i];
+			}
+			PixelAccess<K,CC>& operator[](unsigned int i) {
+				return summands[i];
+			}
+			operator K() const {
+				K sum = summands[0];
+				for(unsigned int k=1; k<N; k++) {
+					sum += summands[k];
+				}
+				return sum;
+			}
+			void increment(const PixelAccess<K,CC>& target) {
+				for(unsigned int i=0; i<CC; i++) {
+					for(unsigned int k=0; k<N; k++) {
+						target[i] += summands[k][i];
+					}
+				}
+			}
+			void setTo(const PixelAccess<K,CC>& target) {
+				for(unsigned int i=0; i<CC; i++) {
+					target[i] = summands[0][i];
+					for(unsigned int k=1; k<N; k++) {
+						target[i] += summands[k][i];
+					}
+				}
+			}
 		};
 
-		struct OpMult {
+		struct OpScale {
 			K s;
 			PixelAccess<K,CC> x;
+			void setTo(const PixelAccess<K,CC>& target) {
+				for(unsigned int i=0; i<CC; i++) {
+					target[i] = s * x[i];
+				}
+			}
 		};
 
 		PixelAccess& operator=(K v) {
+			static_assert(CC == 1, "slimage::PixelAccess: operator=(K) only valid if channel count is 1!");
 			p[0] = v;
 			return *this;
 		}
@@ -473,51 +516,75 @@ namespace detail
 			return *this;
 		}
 
-		PixelAccess& operator=(const OpMult& v) {
-			for(unsigned int i=0; i<CC; i++) {
-				p[i] = v.s * v.x[i];
-			}
+		PixelAccess& operator=(const OpScale& v) {
+			v.setTo(*this);
 			return *this;
 		}
 
-		PixelAccess& operator=(const OpAdd& v) {
-			for(unsigned int i=0; i<CC; i++) {
-				p[i] = v.x[i] * v.y[i];
-			}
+		template<unsigned int N>
+		PixelAccess& operator=(const OpAdd<N>& v) {
+			v.setTo(*this);
 			return *this;
 		}
 
-		K& operator[](unsigned int i) const {
-			return p[i];
+		PixelAccess& operator+=(K x) {
+			static_assert(CC == 1, "slimage::PixelAccess: operator+=(K) only valid if channel count is 1!");
+			p[0] += x;
+			return *this;
+		}
+
+		PixelAccess& operator-=(K x) {
+			static_assert(CC == 1, "slimage::PixelAccess: operator-=(K) only valid if channel count is 1!");
+			p[0] -= x;
+			return *this;
 		}
 
 		PixelAccess& operator+=(const PixelAccess<K,CC>& x) {
 			for(unsigned int i=0; i<CC; i++) {
-				p[i] += x[i];
+				p[i] += x.p[i];
 			}
 			return *this;
 		}
 
 		PixelAccess& operator-=(const PixelAccess<K,CC>& x) {
 			for(unsigned int i=0; i<CC; i++) {
-				p[i] -= x[i];
+				p[i] -= x.p[i];
 			}
 			return *this;
 		}
 
-		PixelAccess& operator+=(K x) {
-			for(unsigned int i=0; i<CC; i++) {
-				p[i] += x;
-			}
+		template<unsigned int N>
+		PixelAccess& operator+=(const OpAdd<N>& x) {
+			x.increment(*this);
 			return *this;
 		}
 
-		friend OpMult operator*(K s, const PixelAccess<K,CC>& x) {
-			return OpMult{s, x};
+		friend OpScale operator*(K s, const PixelAccess<K,CC>& x) {
+			return OpScale{s, x};
 		}
 
-		friend OpMult operator+(const PixelAccess<K,CC>& x, const PixelAccess<K,CC>& y) {
-			return OpMult{x, y};
+		friend OpAdd<2> operator+(const PixelAccess<K,CC>& x, const PixelAccess<K,CC>& y) {
+			return OpAdd<2>{{x, y}};
+		}
+
+		template<unsigned int N>
+		friend OpAdd<N+1> operator+(const PixelAccess<K,CC>& x, const OpAdd<N>& y) {
+			OpAdd<N+1> q;
+			q[0] = x;
+			for(unsigned int i=0; i<N; i++) {
+				q[i+1] = y[i];
+			}
+			return q;
+		}
+
+		template<unsigned int N>
+		friend OpAdd<N+1> operator+(const OpAdd<N>& y, const PixelAccess<K,CC>& x) {
+			OpAdd<N+1> q;
+			for(unsigned int i=0; i<N; i++) {
+				q[i] = y[i];
+			}
+			q[N] = x;
+			return q;
 		}
 
 	};
