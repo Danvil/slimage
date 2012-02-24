@@ -20,19 +20,19 @@ namespace slimage {
 
 struct ThreadingOptions
 {
-	ThreadingOptions()
-	: thread_count_(Danvil::CpuCount()), pool_id_(0) {}
+	unsigned int thread_count_;
+	unsigned int pool_id_;
 
-	ThreadingOptions(unsigned int thread_count)
-	: thread_count_(thread_count), pool_id_(0) {}
+	static ThreadingOptions Single() {
+		return ThreadingOptions{ 1, 0 };
+	}
 
-	ThreadingOptions(unsigned int thread_count, unsigned int pool_id)
-	: thread_count_(thread_count), pool_id_(pool_id) {}
+	static ThreadingOptions Default() {
+		return ThreadingOptions{ Danvil::CpuCount(), 0 };
+	}
 
 	static ThreadingOptions UsePool(unsigned int pool_id) {
-		ThreadingOptions opt;
-		opt.pool_id_ = pool_id;
-		return opt;
+		return ThreadingOptions{ Danvil::CpuCount(), pool_id };
 	}
 
 	unsigned int threads() const {
@@ -43,9 +43,6 @@ struct ThreadingOptions
 		return pool_id_;
 	}
 
-private:
-	unsigned int thread_count_;
-	unsigned int pool_id_;
 };
 
 namespace detail
@@ -138,7 +135,7 @@ namespace detail
 }
 
 template<typename I1, typename F>
-void ParallelProcess(const I1& img1, F f, ThreadingOptions opt=ThreadingOptions())
+void ParallelProcess(const I1& img1, F f, ThreadingOptions opt)
 {
 	size_t pixel_count = img1.getPixelCount();
 	if(opt.threads() == 1) {
@@ -167,7 +164,7 @@ void ParallelProcess(const I1& img1, F f, ThreadingOptions opt=ThreadingOptions(
 }
 
 template<typename I1, typename I2, typename F>
-void ParallelProcess(const I1& img1, const I2& img2, F f, ThreadingOptions opt=ThreadingOptions())
+void ParallelProcess(const I1& img1, const I2& img2, F f, ThreadingOptions opt)
 {
 	size_t pixel_count = img1.getPixelCount();
 	if(img2.getPixelCount() != pixel_count) {
