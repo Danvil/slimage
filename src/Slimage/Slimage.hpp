@@ -832,24 +832,6 @@ Image<K,CC> abs(const Image<K,CC>& a) {
 }
 
 //----------------------------------------------------------------------------//
-
-void Save(const ImagePtr& img, const std::string& filename);
-
-void Save(const Image1ub& img, const std::string& filename);
-
-void Save(const Image3ub& img, const std::string& filename);
-
-void Save(const Image4ub& img, const std::string& filename);
-
-ImagePtr Load(const std::string& filename);
-
-Image1ub Load1ub(const std::string& filename);
-
-Image3ub Load3ub(const std::string& filename);
-
-Image4ub Load4ub(const std::string& filename);
-
-//----------------------------------------------------------------------------//
 }
 //----------------------------------------------------------------------------//
 #endif
