@@ -13,6 +13,7 @@
 #include <boost/assert.hpp>
 #include <algorithm>
 #include <string>
+#include <typeinfo>
 #include <stdint.h>
 //----------------------------------------------------------------------------//
 namespace slimage {
@@ -134,6 +135,12 @@ struct Buffer
 		std::copy(mem, mem + size_, begin());
 	}
 
+	void copyFromInterleaved(const K* mem, unsigned int step) {
+		for(unsigned int i=0; i<size_; i++) {
+			begin_[i] = mem[step*i];
+		}
+	}
+
 private:
 	std::size_t size_;
 	boost::shared_array<K> data_;
@@ -239,10 +246,6 @@ struct ImageBase
 
 	K& operator[](std::size_t i) const {
 		return *(begin() + i);
-	}
-
-	void fill(K v) const {
-		buffer_.fill(v);
 	}
 
 	void scale(K v) const {
@@ -413,6 +416,10 @@ struct Pixel<K,3>
 		return values[2];
 	}
 
+	static Pixel<K,3> Black() {
+		return Pixel<K,3>{0,0,0};
+	}
+
 };
 
 
@@ -420,6 +427,7 @@ typedef Pixel<unsigned char, 1> Pixel1ub;
 typedef Pixel<unsigned char, 3> Pixel3ub;
 typedef Pixel<unsigned char, 4> Pixel4ub;
 typedef Pixel<float, 1> Pixel1f;
+typedef Pixel<float, 2> Pixel2f;
 typedef Pixel<float, 3> Pixel3f;
 typedef Pixel<float, 4> Pixel4f;
 
@@ -653,6 +661,14 @@ struct Image
 		return height_;
 	}
 
+	bool hasSameSize(const Image<K,CC>& other) const {
+		return width() == other.width() && height() == other.height();
+	}
+
+	bool hasSameShape(const Image<K,CC>& other) const {
+		return hasSameSize(other) && this->channelCount() == other.channelCount();
+	}
+
 	/** Number of pixels
 	 * @return width * height
 	 */
@@ -716,6 +732,12 @@ struct Image
 		return detail::PixelAccess<K,CC>{ this->begin() + i*CC };
 	}
 
+	void fill(const Pixel<K,CC>& v) const {
+		for(unsigned int i=0; i<getPixelCount(); i++) {
+			this->operator()(i) = v;
+		}
+	}
+
 private:
 	IndexType width_, height_;
 };
@@ -730,6 +752,7 @@ typedef Image<unsigned char, 3> Image3ub;
 typedef Image<unsigned char, 4> Image4ub;
 typedef Image<uint16_t, 1> Image1ui16;
 typedef Image<float, 1> Image1f;
+typedef Image<float, 2> Image2f;
 typedef Image<float, 3> Image3f;
 typedef Image<float, 4> Image4f;
 typedef Image<double, 1> Image1d;
@@ -743,6 +766,13 @@ namespace detail
 	struct ImageContainerPtr
 	{
 		virtual ~ImageContainerPtr() {}
+
+		virtual unsigned int width() const = 0;
+		virtual unsigned int height() const = 0;
+		virtual unsigned int channelCount() const = 0;
+		virtual bool hasElementType(const std::type_info& id) const = 0;
+		virtual const void* begin() const = 0;
+		virtual void* begin() = 0;
 	};
 
 	template<typename K, unsigned int CC>
@@ -756,6 +786,30 @@ namespace detail
 
 		const Type& image() const {
 			return image_;
+		}
+
+		unsigned int width() const {
+			return image_.width();
+		}
+
+		unsigned int height() const {
+			return image_.height();
+		}
+
+		unsigned int channelCount() const {
+			return image_.channelCount();
+		}
+
+		bool hasElementType(const std::type_info& id) const {
+			return id == typeid(K);
+		}
+
+		const void* begin() const {
+			return static_cast<const void*>(image_.begin());
+		}
+
+		void* begin() {
+			return static_cast<void*>(image_.begin());
 		}
 
 	private:
@@ -829,6 +883,13 @@ Image<K,CC> abs(const Image<K,CC>& a) {
 		c[i] = std::abs(a[i]);
 	}
 	return c;
+}
+
+template<typename K>
+Image<K,1> Pick(const ImagePtr& raw, unsigned int c) {
+	Image<K,1> img(raw->width(), raw->height());
+	img.buffer().copyFromInterleaved(static_cast<const K*>(raw->begin()) + c, raw->channelCount());
+	return img;
 }
 
 //----------------------------------------------------------------------------//

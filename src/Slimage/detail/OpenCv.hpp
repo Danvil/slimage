@@ -30,7 +30,17 @@ namespace opencv {
 	}
 
 	ImagePtr ConvertFromOpenCv(const cv::Mat& mat) {
-		if(mat.type() == CV_8UC3) {
+		if(mat.type() == CV_8UC1) {
+			Image1ub img(mat.cols, mat.rows);
+			for(unsigned int y=0; y<img.height(); y++) {
+				for(unsigned int x=0; x<img.width(); x++) {
+					img(x,y) = Pixel1ub{mat.ptr<unsigned char>(y, x)[0]};
+				}
+			}
+//			img.copyFrom(mat.begin<unsigned char>());
+			return Ptr(img);
+		}
+		else if(mat.type() == CV_8UC3) {
 			Image3ub img(mat.cols, mat.rows);
 			for(unsigned int y=0; y<img.height(); y++) {
 				for(unsigned int x=0; x<img.width(); x++) {
