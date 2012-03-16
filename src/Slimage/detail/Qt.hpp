@@ -28,6 +28,15 @@ namespace detail
 	}
 
 	inline
+	void copy_RGBA_to_BGR_8bit(const unsigned char* src, const unsigned char* src_end, unsigned char* dst) {
+		for(; src != src_end; src+=4, dst+=3) {
+			dst[0] = src[2];
+			dst[1] = src[1];
+			dst[2] = src[0];
+		}
+	}
+
+	inline
 	void copy_RGB_to_BGRA_8bit(const unsigned char* src, const unsigned char* src_end, unsigned char* dst, unsigned char alpha) {
 		for(; src != src_end; src+=3, dst+=4) {
 			dst[0] = src[2];
@@ -109,6 +118,7 @@ namespace qt {
 	inline
 	ImagePtr ConvertFromQt(const QImage& qimg)
 	{
+		std::cout << qimg.format() << std::endl;
 		if(qimg.format() == QImage::Format_Indexed8) {
 			unsigned int w = qimg.width();
 			unsigned int h = qimg.height();
@@ -117,6 +127,17 @@ namespace qt {
 				const unsigned char* src = qimg.scanLine(i);
 				unsigned char* dst = img.scanline(i);
 				std::copy(src, src+w, dst);
+			}
+			return Ptr(img);
+		}
+		else if(qimg.format() == QImage::Format_RGB32) {
+			unsigned int h = qimg.height();
+			unsigned int w = qimg.width();
+			Image3ub img(w, h);
+			for(unsigned int i=0; i<h; i++) {
+				const unsigned char* src = qimg.scanLine(i);
+				unsigned char* dst = img.scanline(i);
+				detail::copy_RGBA_to_BGR_8bit(src, src + 4*w, dst);
 			}
 			return Ptr(img);
 		}
