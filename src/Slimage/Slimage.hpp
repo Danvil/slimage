@@ -417,7 +417,7 @@ struct Pixel<K,3>
 	}
 
 	static Pixel<K,3> Black() {
-		return Pixel<K,3>{0,0,0};
+		return Pixel<K,3>{{0,0,0}};
 	}
 
 };
