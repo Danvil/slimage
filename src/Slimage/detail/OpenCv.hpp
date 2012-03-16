@@ -65,6 +65,9 @@ namespace opencv {
 
 	ImagePtr Load(const std::string& filename) {
 		cv::Mat mat = cv::imread(filename);
+		if(mat.rows == 0 && mat.cols == 0) {
+			throw IoException(filename, "Empty image (does the file exists?)");
+		}
 		return ConvertFromOpenCv(mat);
 	}
 
