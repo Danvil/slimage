@@ -10,6 +10,7 @@
 //----------------------------------------------------------------------------//
 #include "Buffer.hpp"
 #include "Pixel.hpp"
+#include "Iterator.hpp"
 #include <boost/shared_ptr.hpp>
 #include <boost/assert.hpp>
 #include <algorithm>
@@ -167,12 +168,12 @@ struct Image
 
 	/** Access to the pixel at position (x,y) */
 	PixelAccess<K,CC> operator()(index_t x, index_t y) const {
-		return PixelAccess<K,CC>{ pointer(x,y) };
+		return { pointer(x,y) };
 	}
 
 	/** Access to the i-th pixel */
 	PixelAccess<K,CC> operator[](index_t i) const {
-		return PixelAccess<K,CC>{ buffer_.begin() + i*CC };
+		return { buffer_.begin() + i*CC };
 	}
 
 	Iterator<K,CC> begin() const {
@@ -208,8 +209,8 @@ struct Image
 
 	/** Sets all pixels to the same value */
 	void fill(const Pixel<K,CC>& v) const {
-		for(unsigned int i=0; i<size(); i++) {
-			this->operator[](i) = v;
+		for(auto it=begin(); it!=end(); it++) {
+			*it = v;
 		}
 	}
 

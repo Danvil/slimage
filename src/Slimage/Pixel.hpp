@@ -32,37 +32,97 @@ struct point_t
 
 //----------------------------------------------------------------------------//
 
-struct Rgba
-{
-	union {
-		struct { unsigned char r, g, b, a; };
-		uint32_t rgba;
-	};
+//namespace detail
+//{
+//	template<typename K, unsigned int N>
+//	struct PixelStorage
+//	{
+//		K values[N];
+//
+//		const K operator[](unsigned int i) const {
+//			BOOST_ASSERT(i < N);
+//			return values[i];
+//		}
+//
+//		K& operator[](unsigned int i) {
+//			BOOST_ASSERT(i < N);
+//			return values[i];
+//		}
+//
+//	};
+//
+//	template<typename K>
+//	struct PixelStorage<K,1>
+//	{
+//		K value;
+//
+//		operator const K() {
+//			return value;
+//		}
+//
+//		const K operator[](unsigned int i) const {
+//			BOOST_ASSERT(i == 0);
+//			return value;
+//		}
+//
+//		K& operator[](unsigned int i) {
+//			BOOST_ASSERT(i == 0);
+//			return value;
+//		}
+//
+//	};
+//
+//	template<typename K, unsigned int N>
+//	struct PixelPointer
+//	{
+//		K* p_;
+//
+//		const K operator[](unsigned int i) const {
+//			BOOST_ASSERT(i < N);
+//			return p_[i];
+//		}
+//
+//		K& operator[](unsigned int i) {
+//			BOOST_ASSERT(i < N);
+//			return p_[i];
+//		}
+//
+//	};
+//
+//	template<typename K>
+//	struct PixelPointer<K,1>
+//	{
+//		K* p_;
+//
+//		operator const K() {
+//			return *p_;
+//		}
+//
+//		const K operator[](unsigned int i) const {
+//			BOOST_ASSERT(i == 0);
+//			return *p_;
+//		}
+//
+//		K& operator[](unsigned int i) {
+//			BOOST_ASSERT(i == 0);
+//			return *p_;
+//		}
+//
+//	};
+//
+//	template<typename K, unsigned int N>
+//	struct StorageSelector {
+//		typedef PixelStorage<K,N> result_t;
+//	};
+//
+//	template<typename K, unsigned int N>
+//	struct StorageSelector<K&,N> {
+//		typedef PixelPointer<K,N> result_t;
+//	};
+//
+//
+//}
 
-	static Rgba White() {
-		return Rgba(255,255,255,255);
-	}
-
-	static Rgba Black() {
-		return Rgba(0,0,0,255);
-	}
-
-	Rgba() {}
-
-	Rgba(unsigned char _r, unsigned char _g, unsigned char _b, unsigned char _a=255)
-	: r(_r), g(_g), b(_b), a(_a) {}
-
-	void set(unsigned char _r, unsigned char _g, unsigned char _b, unsigned char _a=255) {
-		r = _r;
-		g = _g;
-		b = _b;
-		a = _a;
-	}
-};
-
-//----------------------------------------------------------------------------//
-
-//----------------------------------------------------------------------------//
 
 template<typename K, unsigned int N>
 struct Pixel
@@ -404,82 +464,6 @@ typedef PixelAccess<float, 3> PixelAccess3f;
 typedef PixelAccess<float, 4> PixelAccess4f;
 typedef PixelAccess<uint16_t, 1> PixelAccess1ui16;
 typedef PixelAccess<int, 1> PixelAccess1i;
-
-//----------------------------------------------------------------------------//
-
-template<typename K, unsigned int CC>
-struct Iterator
-{
-	K* p;
-
-	/** This function is dangerous!! */
-	K* pointer() const {
-		return p;
-	}
-
-	PixelAccess<K,CC> operator*() const {
-		return PixelAccess<K,CC>{ p };
-	}
-
-	K& operator[](index_t i) const {
-		BOOST_ASSERT(i < CC);
-		return p[i];
-	}
-
-	const Iterator<K,CC>& operator++() {
-		static_assert(CC != 0, "CC = 0 currently not supported!");
-		p += CC;
-		return *this;
-	}
-
-	Iterator<K,CC> operator++(int) {
-		static_assert(CC != 0, "CC = 0 currently not supported!");
-		Iterator<K,CC> t = *this;
-		++(*this);
-		return t;
-	}
-
-	Iterator operator+(index_t i) const {
-		static_assert(CC != 0, "CC = 0 currently not supported!");
-		return Iterator{ p + i * CC };
-	}
-
-	Iterator operator-(index_t i) const {
-		static_assert(CC != 0, "CC = 0 currently not supported!");
-		return Iterator{ p - i * CC };
-	}
-
-	bool operator==(const Iterator& a) const {
-		return p == a.p;
-	}
-
-	bool operator!=(const Iterator& a) const {
-		return p != a.p;
-	}
-
-	bool operator<(const Iterator& a) const {
-		return p < a.p;
-	}
-
-	bool operator>(const Iterator& a) const {
-		return p > a.p;
-	}
-
-	friend int operator-(const Iterator& a, const Iterator& b) {
-		return a.p - b.p;
-	}
-
-};
-
-typedef Iterator<unsigned char, 1> It1ub;
-typedef Iterator<unsigned char, 3> It3ub;
-typedef Iterator<unsigned char, 4> It4ub;
-typedef Iterator<float, 1> It1f;
-typedef Iterator<float, 2> It2f;
-typedef Iterator<float, 3> It3f;
-typedef Iterator<float, 4> It4f;
-typedef Iterator<uint16_t, 1> It1ui16;
-typedef Iterator<int, 1> It1i;
 
 //----------------------------------------------------------------------------//
 }
