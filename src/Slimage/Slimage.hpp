@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <string>
 #include <typeinfo>
+#include <stdexcept>
 #include <stdint.h>
 //----------------------------------------------------------------------------//
 namespace slimage {
@@ -256,11 +257,11 @@ struct ImageBase
 		buffer_.copyFrom(mem);
 	}
 
-	ImageBase sub(size_t pos, size_t n) const {
+	ImageBase subShared(size_t pos, size_t n) const {
 		return ImageBase(this->channelCount(), buffer_.sub(pos, n));
 	}
 
-	ImageBase subFromTo(size_t begin, size_t end) const {
+	ImageBase subSharedFromTo(size_t begin, size_t end) const {
 		return ImageBase(this->channelCount(), buffer_.subFromTo(begin, end));
 	}
 
@@ -744,6 +745,29 @@ struct Image
 		for(unsigned int i=0; i<getPixelCount(); i++) {
 			this->operator()(i) = v;
 		}
+	}
+
+	Image<K,CC> sub(unsigned int x, unsigned int y, unsigned int w, unsigned int h) const {
+		unsigned int cc = this->channelCount();
+		if( x + w > width() || y + h > height() ) {
+			throw std::runtime_error("Wrong frame in sub image extraction");
+		}
+		Image<K,CC> si(w, h, cc);
+		for(unsigned int i=0; i<h; i++) {
+			const K* src = scanline(y+i) + x*cc;
+			std::copy(src, src + w*cc, si.scanline(i));
+		}
+		return si;
+	}
+
+	Image<K,CC> flipY() const {
+		unsigned int cc = this->channelCount();
+		Image<K,CC> t(width(), height(), cc);
+		// copy line by line
+		for(size_t y=0; y<height(); y++) {
+			std::copy(scanline(y), scanline(y) + cc * width(), t.scanline(height() - y - 1));
+		}
+		return t;
 	}
 
 private:
