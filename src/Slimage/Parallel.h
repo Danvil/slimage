@@ -103,41 +103,56 @@ namespace detail
 		}
 	};
 
-	template<typename I1, typename F>
-	void Process(I1 img1, F f)
+	template<typename K1, unsigned int CC1, typename F>
+	void Process(Iterator<K1,CC1> it1_begin, Iterator<K1,CC1> it1_end, F f)
 	{
-		typename I1::ElementType* p1;
-		for(p1=img1.begin(); p1!=img1.end(); p1+=img1.channelCount()) {
-			f(p1);
+		for(auto it1=it1_begin; it1!=it1_end; ++it1) {
+			f(it1);
 		}
 	}
 
-	template<typename I1, typename I2, typename F>
-	void Process(I1 img1, I2 img2, F f)
+	template<typename K1, unsigned int CC1, typename F>
+	void Process(const Image<K1,CC1>& img1, F f)
 	{
-		typename I1::ElementType* p1;
-		typename I2::ElementType* p2;
-		for(p1=img1.begin(), p2=img2.begin(); p1!=img1.end(); p1+=img1.channelCount(), p2+=img2.channelCount()) {
-			f(p1, p2);
+		Process(img1.begin(), img1.end(), f);
+	}
+
+	template<typename K1, unsigned int CC1, typename K2, unsigned int CC2, typename F>
+	void Process(Iterator<K1,CC1> it1_begin, Iterator<K1,CC1> it1_end, Iterator<K2,CC2> it2, F f)
+	{
+		for(auto it1=it1_begin; it1!=it1_end; ++it1, ++it2) {
+			f(it1, it2);
 		}
 	}
 
-	template<typename I1, typename I2, typename I3, typename F>
-	void Process(I1 img1, I2 img2, I3 img3, F f)
+	template<typename K1, unsigned int CC1, typename K2, unsigned int CC2, typename F>
+	void Process(const Image<K1,CC1>& img1, const Image<K2,CC2>& img2, F f)
 	{
-		typename I1::ElementType* p1;
-		typename I2::ElementType* p2;
-		typename I3::ElementType* p3;
-		for(p1=img1.begin(), p2=img2.begin(), p3=img3.begin(); p1!=img1.end(); p1+=img1.channelCount(), p2+=img2.channelCount(), p3+=img3.channelCount()) {
-			f(p1, p2, p3);
+		BOOST_ASSERT(img1.dimensions() == img2.dimensions());
+		Process(img1.begin(), img1.end(), img2.begin(), f);
+	}
+
+	template<typename K1, unsigned int CC1, typename K2, unsigned int CC2, typename K3, unsigned int CC3, typename F>
+	void Process(Iterator<K1,CC1> it1_begin, Iterator<K1,CC1> it1_end, Iterator<K2,CC2> it2, const Iterator<K3,CC3>& it3, F f)
+	{
+		for(auto it1=it1_begin; it1!=it1_end; ++it1, ++it2, ++it3) {
+			f(it1, it2, it3);
 		}
 	}
+
+	template<typename K1, unsigned int CC1, typename K2, unsigned int CC2, typename K3, unsigned int CC3, typename F>
+	void Process(const Image<K1,CC1>& img1, const Image<K2,CC2>& img2, const Image<K3,CC3>& img3, F f)
+	{
+		BOOST_ASSERT(img1.dimensions() == img2.dimensions());
+		BOOST_ASSERT(img1.dimensions() == img3.dimensions());
+		Process(img1.begin(), img1.end(), img2.begin(), img3.begin(), f);
+	}
+
 }
 
-template<typename I1, typename F>
-void ParallelProcess(const I1& img1, F f, ThreadingOptions opt)
+template<typename K1, unsigned int CC1, typename F>
+void ParallelProcess(const Image<K1,CC1>& img1, F f, ThreadingOptions opt)
 {
-	size_t pixel_count = img1.getPixelCount();
 	if(opt.threads() == 1) {
 		// do everything in this thread
 		detail::Process(img1, f);
@@ -145,30 +160,24 @@ void ParallelProcess(const I1& img1, F f, ThreadingOptions opt)
 	else {
 		detail::ThreadPoolManager pool(opt.pool());
 		// create threads
-		size_t D = pixel_count / opt.threads();
-		size_t Dcc1 = D*img1.channelCount();
-		auto buff1 = img1.buffer();
+		size_t D = img1.size() / opt.threads();
 		for(unsigned int i=0; i<opt.threads(); i++) {
-			typename I1::BaseType img1_sub;
+			index_t ibegin = i*D;
+			index_t iend = ibegin + D;
 			if(i + 1 == opt.threads()) {
 				// last thread must do the rest
-				img1_sub = img1.subSharedFromTo(i*Dcc1, img1.getElementCount());
+				iend = img1.size();
 			}
-			else {
-				// select the work chunk
-				img1_sub = img1.subShared(i*Dcc1, Dcc1);
-			}
-			pool().schedule(boost::bind(&detail::Process<typename I1::BaseType,F>, img1_sub, f));
+			pool().schedule(boost::bind(&detail::Process<K1,CC1,F>, img1.begin() + ibegin, img1.begin() + iend, f));
 		}
 	}
 }
 
-template<typename I1, typename I2, typename F>
-void ParallelProcess(const I1& img1, const I2& img2, F f, ThreadingOptions opt)
+template<typename K1, unsigned int CC1, typename K2, unsigned int CC2, typename F>
+void ParallelProcess(const Image<K1,CC1>& img1, const Image<K2,CC2>& img2, F f, ThreadingOptions opt)
 {
-	size_t pixel_count = img1.getPixelCount();
-	if(img2.getPixelCount() != pixel_count) {
-		throw "Pixel count does not match!";
+	if(img2.dimensions() != img2.dimensions()) {
+		throw "Image size does not match!";
 	}
 	if(opt.threads() == 1) {
 		// do everything in this thread
@@ -177,65 +186,45 @@ void ParallelProcess(const I1& img1, const I2& img2, F f, ThreadingOptions opt)
 	else {
 		detail::ThreadPoolManager pool(opt.pool());
 		// create threads
-		size_t D = pixel_count / opt.threads();
-		size_t Dcc1 = D*img1.channelCount();
-		size_t Dcc2 = D*img2.channelCount();
+		size_t D = img1.size() / opt.threads();
 		for(unsigned int i=0; i<opt.threads(); i++) {
-			typename I1::BaseType img1_sub;
-			typename I2::BaseType img2_sub;
+			index_t ibegin = i*D;
+			index_t iend = ibegin + D;
 			if(i + 1 == opt.threads()) {
 				// last thread must do the rest
-				img1_sub = img1.subSharedFromTo(i*Dcc1, img1.getElementCount());
-				img2_sub = img2.subSharedFromTo(i*Dcc2, img2.getElementCount());
+				iend = img1.size();
 			}
-			else {
-				// select the work chunk
-				img1_sub = img1.subShared(i*Dcc1, Dcc1);
-				img2_sub = img2.subShared(i*Dcc2, Dcc2);
-			}
-			pool().schedule(boost::bind(&detail::Process<typename I1::BaseType,typename I2::BaseType,F>, img1_sub, img2_sub, f));
+			pool().schedule(boost::bind(&detail::Process<K1,CC1,K2,CC2,F>, img1.begin() + ibegin, img1.begin() + iend, img2.begin() + ibegin, f));
 		}
 	}
 }
 
-template<typename I1, typename I2, typename I3, typename F>
-void ParallelProcess(const I1& img1, const I2& img2, const I3& img3, F f, ThreadingOptions opt)
+template<typename K1, unsigned int CC1, typename K2, unsigned int CC2, typename K3, unsigned int CC3, typename F>
+void ParallelProcess(const Image<K1,CC1>& img1, const Image<K2,CC2>& img2, const Image<K3,CC3>& img3, F f, ThreadingOptions opt)
 {
-	size_t pixel_count = img1.getPixelCount();
-	if(img2.getPixelCount() != pixel_count) {
+	size_t pixel_count = img1.size();
+	if(img2.size() != pixel_count) {
 		throw "Pixel count does not match!";
 	}
-	if(img3.getPixelCount() != pixel_count) {
+	if(img3.size() != pixel_count) {
 		throw "Pixel count does not match!";
 	}
 	if(opt.threads() == 1) {
 		// do everything in this thread
-		detail::Process(img1.buffer(), img2.buffer(), img3.buffer(), f);
+		detail::Process(img1, img2, img3, f);
 	}
 	else {
 		detail::ThreadPoolManager pool(opt.pool());
 		// create threads
 		size_t D = pixel_count / opt.threads();
-		size_t Dcc1 = D*img1.channelCount();
-		size_t Dcc2 = D*img2.channelCount();
-		size_t Dcc3 = D*img3.channelCount();
 		for(unsigned int i=0; i<opt.threads(); i++) {
-			typename I1::BaseType img1_sub;
-			typename I2::BaseType img2_sub;
-			typename I3::BaseType img3_sub;
+			index_t ibegin = i*D;
+			index_t iend = ibegin + D;
 			if(i + 1 == opt.threads()) {
 				// last thread must do the rest
-				img1_sub = img1.subSharedFromTo(i*Dcc1, img1.getElementCount());
-				img2_sub = img2.subSharedFromTo(i*Dcc2, img2.getElementCount());
-				img3_sub = img3.subSharedFromTo(i*Dcc3, img3.getElementCount());
+				iend = img1.size();
 			}
-			else {
-				// select the work chunk
-				img1_sub = img1.subShared(i*Dcc1, Dcc1);
-				img2_sub = img2.subShared(i*Dcc2, Dcc2);
-				img3_sub = img3.subShared(i*Dcc3, Dcc3);
-			}
-			pool().schedule(boost::bind(&detail::Process<typename I1::BaseType,typename I2::BaseType,typename I3::BaseType,F>, img1_sub, img2_sub, img3_sub, f));
+			pool().schedule(boost::bind(&detail::Process<K1,CC1,K2,CC2,K3,CC3,F>, img1.begin() + ibegin, img1.begin() + iend, img2.begin() + ibegin, img3.begin() + ibegin, f));
 		}
 	}
 }
