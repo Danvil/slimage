@@ -430,6 +430,7 @@ typedef Pixel<float, 1> Pixel1f;
 typedef Pixel<float, 2> Pixel2f;
 typedef Pixel<float, 3> Pixel3f;
 typedef Pixel<float, 4> Pixel4f;
+typedef Pixel<int, 1> Pixel1i;
 
 //----------------------------------------------------------------------------//
 
@@ -640,6 +641,13 @@ struct Image
 		BOOST_ASSERT(this->buffer().size() == getElementCount());
 	}
 
+	Image(IndexType w, IndexType h, const Pixel<K,CC>& p)
+	: width_(w), height_(h)
+	{
+		this->buffer().resize(getElementCount());
+		this->fill(p);
+	}
+
 	void resize(IndexType w, IndexType h) {
 		width_ = w;
 		height_ = h;
@@ -758,6 +766,7 @@ typedef Image<float, 4> Image4f;
 typedef Image<double, 1> Image1d;
 typedef Image<double, 3> Image3d;
 typedef Image<double, 4> Image4d;
+typedef Image<int, 1> Image1i;
 
 //----------------------------------------------------------------------------//
 
