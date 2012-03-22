@@ -14,8 +14,8 @@
 namespace slimage {
 //----------------------------------------------------------------------------//
 
-template<typename K, unsigned int CHANNELS>
-void PaintPoint(const slimage::Image<K, CHANNELS>& img, int px, int py, const Pixel<K, CHANNELS>& color, int size=1)
+template<typename T>
+void PaintPoint(const slimage::Image<T>& img, int px, int py, const Pixel<T>& color, int size=1)
 {
 	if(px < 0 || int(img.width()) <= px || py < 0 || int(img.height()) <= py) {
 		return;
@@ -77,8 +77,8 @@ void PaintPoint(const slimage::Image<K, CHANNELS>& img, int px, int py, const Pi
 }
 
 /** Paints a line */
-template<typename K, unsigned int CHANNELS>
-void PaintLine(const slimage::Image<K, CHANNELS>& img, int x0, int y0, int x1, int y1, const Pixel<K, CHANNELS>& color)
+template<typename T>
+void PaintLine(const slimage::Image<T>& img, int x0, int y0, int x1, int y1, const Pixel<T>& color)
 {
 //	assert(0 <= x0 && x0 < img.width());
 //	assert(0 <= x1 && x1 < img.width());
@@ -132,8 +132,8 @@ void PaintLine(const slimage::Image<K, CHANNELS>& img, int x0, int y0, int x1, i
 	}
 }
 
-template<typename K, unsigned int CHANNELS>
-void PaintEllipse(const slimage::Image<K, CHANNELS>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<K, CHANNELS>& color)
+template<typename T>
+void PaintEllipse(const slimage::Image<T>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<T>& color)
 {
 //	PaintLine(img, cx+ux+vx, cy+uy+vy, cx+ux-vx, cy+uy-vy, color);
 //	PaintLine(img, cx+ux-vx, cy+uy-vy, cx-ux-vx, cy-uy-vy, color);
@@ -154,8 +154,8 @@ void PaintEllipse(const slimage::Image<K, CHANNELS>& img, int cx, int cy, int ux
 	}
 }
 
-template<typename K, unsigned int CHANNELS>
-void FillEllipse(const slimage::Image<K, CHANNELS>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<K, CHANNELS>& color)
+template<typename T>
+void FillEllipse(const slimage::Image<T>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<T>& color)
 {
 	// FIXME implement filling!
 	const unsigned int N = 16;

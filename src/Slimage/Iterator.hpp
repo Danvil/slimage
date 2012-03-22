@@ -9,15 +9,17 @@
 #define ITERATOR_HPP_
 //----------------------------------------------------------------------------//
 #include "Pixel.hpp"
-#include <stdint.h>
 #include <boost/assert.hpp>
 //----------------------------------------------------------------------------//
 namespace slimage {
 //----------------------------------------------------------------------------//
 
-template<typename K, unsigned int CC>
+template<typename T>
 struct Iterator
 {
+	typedef typename T::element_t K;
+	enum { CC = T::CC };
+
 	K* p_;
 
 	/** This function is dangerous!! */
@@ -25,8 +27,8 @@ struct Iterator
 		return p_;
 	}
 
-	PixelAccess<K,CC> operator*() const {
-		return PixelAccess<K,CC>{ p_ };
+	PixelAccess<T> operator*() const {
+		return { p_ };
 	}
 
 	K& operator[](index_t i) const {
@@ -34,27 +36,27 @@ struct Iterator
 		return p_[i];
 	}
 
-	const Iterator<K,CC>& operator++() {
+	const Iterator& operator++() {
 		static_assert(CC != 0, "CC = 0 currently not supported!");
 		p_ += CC;
 		return *this;
 	}
 
-	Iterator<K,CC> operator++(int) {
+	Iterator operator++(int) {
 		static_assert(CC != 0, "CC = 0 currently not supported!");
-		Iterator<K,CC> t = *this;
+		Iterator t = *this;
 		++(*this);
 		return t;
 	}
 
 	Iterator operator+(index_t i) const {
 		static_assert(CC != 0, "CC = 0 currently not supported!");
-		return Iterator{ p_ + i * CC };
+		return { p_ + i * CC };
 	}
 
 	Iterator operator-(index_t i) const {
 		static_assert(CC != 0, "CC = 0 currently not supported!");
-		return Iterator{ p_ - i * CC };
+		return { p_ - i * CC };
 	}
 
 	bool operator==(const Iterator& a) const {
@@ -78,16 +80,6 @@ struct Iterator
 	}
 
 };
-
-typedef Iterator<unsigned char, 1> It1ub;
-typedef Iterator<unsigned char, 3> It3ub;
-typedef Iterator<unsigned char, 4> It4ub;
-typedef Iterator<float, 1> It1f;
-typedef Iterator<float, 2> It2f;
-typedef Iterator<float, 3> It3f;
-typedef Iterator<float, 4> It4f;
-typedef Iterator<uint16_t, 1> It1ui16;
-typedef Iterator<int, 1> It1i;
 
 //----------------------------------------------------------------------------//
 }

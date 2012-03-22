@@ -17,7 +17,6 @@
 #include <string>
 #include <typeinfo>
 #include <stdexcept>
-#include <stdint.h>
 //----------------------------------------------------------------------------//
 namespace slimage {
 //----------------------------------------------------------------------------//
@@ -69,15 +68,18 @@ namespace detail
 
 //----------------------------------------------------------------------------//
 
-template<typename K, unsigned int CC>
+template<typename T>
 struct Image
-: public detail::PixelTraitsSelector<CC>::Result
+: public detail::PixelTraitsSelector<T::CC>::Result
 {
-	typedef K ElementType;
+	typedef typename T::element_t ElementType;
+
+	typedef typename T::element_t K;
+	enum { CC = T::CC };
 
 	typedef typename detail::PixelTraitsSelector<CC>::Result ChannelTraitsType;
 
-	typedef Pixel<K,CC> PixelType;
+	typedef Pixel<T> pixel_t;
 
 	Image()
 	: width_(0), height_(0)
@@ -115,7 +117,7 @@ struct Image
 		BOOST_ASSERT(buffer_.size() == width_ * height_ * this->channelCount());
 	}
 
-	Image(index_t w, index_t h, const Pixel<K,CC>& p)
+	Image(index_t w, index_t h, const pixel_t& p)
 	: width_(w), height_(h)
 	{
 		allocate();
@@ -141,11 +143,11 @@ struct Image
 		return width() * height();
 	}
 
-	bool hasSameSize(const Image<K,CC>& other) const {
+	bool hasSameSize(const Image& other) const {
 		return width() == other.width() && height() == other.height();
 	}
 
-	bool hasSameShape(const Image<K,CC>& other) const {
+	bool hasSameShape(const Image& other) const {
 		return hasSameSize(other) && this->channelCount() == other.channelCount();
 	}
 
@@ -167,20 +169,20 @@ struct Image
 	}
 
 	/** Access to the pixel at position (x,y) */
-	PixelAccess<K,CC> operator()(index_t x, index_t y) const {
+	PixelAccess<T> operator()(index_t x, index_t y) const {
 		return { pointer(x,y) };
 	}
 
 	/** Access to the i-th pixel */
-	PixelAccess<K,CC> operator[](index_t i) const {
+	PixelAccess<T> operator[](index_t i) const {
 		return { buffer_.begin() + i*CC };
 	}
 
-	Iterator<K,CC> begin() const {
+	Iterator<T> begin() const {
 		return { buffer_.begin() };
 	}
 
-	Iterator<K,CC> end() const {
+	Iterator<T> end() const {
 		return { buffer_.end() };
 	}
 
@@ -208,19 +210,19 @@ struct Image
 	}
 
 	/** Sets all pixels to the same value */
-	void fill(const Pixel<K,CC>& v) const {
+	void fill(const pixel_t& v) const {
 		for(auto it=begin(); it!=end(); it++) {
 			*it = v;
 		}
 	}
 
 	/** Creates a deep copied sub image */
-	Image<K,CC> sub(unsigned int x, unsigned int y, unsigned int w, unsigned int h) const {
+	Image sub(unsigned int x, unsigned int y, unsigned int w, unsigned int h) const {
 		unsigned int cc = this->channelCount();
 		if( x + w > width() || y + h > height() ) {
 			throw std::runtime_error("Wrong frame in sub image extraction");
 		}
-		Image<K,CC> si(w, h, cc);
+		Image si(w, h, cc);
 		for(unsigned int i=0; i<h; i++) {
 			const K* src = scanline(y+i) + x*cc;
 			std::copy(src, src + w*cc, si.scanline(i));
@@ -229,9 +231,9 @@ struct Image
 	}
 
 	/** Creates a deep copied flipped image */
-	Image<K,CC> flipY() const {
+	Image flipY() const {
 		unsigned int cc = this->channelCount();
-		Image<K,CC> t(width(), height(), cc);
+		Image t(width(), height(), cc);
 		// copy line by line
 		for(size_t y=0; y<height(); y++) {
 			std::copy(scanline(y), scanline(y) + cc * width(), t.scanline(height() - y - 1));
@@ -269,25 +271,6 @@ private:
 
 //----------------------------------------------------------------------------//
 
-typedef Image<unsigned char,0> ImageXub;
-typedef Image<uint16_t,0> ImageXui16;
-typedef Image<float,0> ImageXf;
-typedef Image<double,0> ImageXd;
-typedef Image<unsigned char, 1> Image1ub;
-typedef Image<unsigned char, 3> Image3ub;
-typedef Image<unsigned char, 4> Image4ub;
-typedef Image<uint16_t, 1> Image1ui16;
-typedef Image<float, 1> Image1f;
-typedef Image<float, 2> Image2f;
-typedef Image<float, 3> Image3f;
-typedef Image<float, 4> Image4f;
-typedef Image<double, 1> Image1d;
-typedef Image<double, 3> Image3d;
-typedef Image<double, 4> Image4d;
-typedef Image<int, 1> Image1i;
-
-//----------------------------------------------------------------------------//
-
 namespace detail
 {
 	struct ImageContainerPtr
@@ -302,11 +285,11 @@ namespace detail
 		virtual void* begin() = 0;
 	};
 
-	template<typename K, unsigned int CC>
+	template<typename T>
 	struct ImagePtrImpl
 	: public ImageContainerPtr
 	{
-		typedef Image<K,CC> Type;
+		typedef Image<T> Type;
 
 		ImagePtrImpl(const Type& img)
 		: image_(img) {}
@@ -328,7 +311,7 @@ namespace detail
 		}
 
 		bool hasElementType(const std::type_info& id) const {
-			return id == typeid(K);
+			return id == typeid(typename T::element_t);
 		}
 
 		const void* begin() const {
@@ -346,16 +329,16 @@ namespace detail
 
 typedef boost::shared_ptr<detail::ImageContainerPtr> ImagePtr;
 
-template<typename K, unsigned int CC>
-ImagePtr Ptr(const Image<K,CC>& img)
+template<typename T>
+ImagePtr Ptr(const Image<T>& img)
 {
-	return ImagePtr(new detail::ImagePtrImpl<K,CC>(img));
+	return ImagePtr(new detail::ImagePtrImpl<T>(img));
 }
 
 template<typename K, unsigned int CC>
-Image<K, CC> Ref(const ImagePtr& ptr)
+Image<Traits<K,CC>> Ref(const ImagePtr& ptr)
 {
-	typedef detail::ImagePtrImpl<K, CC> Type;
+	typedef detail::ImagePtrImpl<Traits<K,CC>> Type;
 	Type* x = dynamic_cast<Type*>(ptr.get());
 	if(x == 0) {
 		throw "Invalid type";
@@ -368,7 +351,7 @@ Image<K, CC> Ref(const ImagePtr& ptr)
 template<typename K, unsigned int CC>
 bool HasType(const ImagePtr& ptr)
 {
-	typedef detail::ImagePtrImpl<K, CC> Type;
+	typedef detail::ImagePtrImpl<Traits<K,CC>> Type;
 	Type* x = dynamic_cast<Type*>(ptr.get());
 	return (x != 0);
 }
@@ -376,8 +359,8 @@ bool HasType(const ImagePtr& ptr)
 //----------------------------------------------------------------------------//
 
 template<unsigned int CC>
-Image<float,CC> Convert_ub_2_f(const Image<unsigned char,CC>& u) {
-	Image<float,CC> v(u.width(), u.height());
+Image<Traits<float,CC>> Convert_ub_2_f(const Image<Traits<unsigned char,CC>>& u) {
+	Image<Traits<float,CC>> v(u.width(), u.height());
 	for(unsigned int i=0; i<u.size(); i++) {
 		v[i] = float(u[i]) / 255.0f;
 	}
@@ -385,27 +368,27 @@ Image<float,CC> Convert_ub_2_f(const Image<unsigned char,CC>& u) {
 }
 
 template<unsigned int CC>
-Image<unsigned char,CC> Convert_f_2_ub(const Image<float,CC>& u, float scl = 1.0f) {
-	Image<unsigned char,CC> v(u.width(), u.height());
+Image<Traits<unsigned char,CC>> Convert_f_2_ub(const Image<Traits<float,CC>>& u, float scl = 1.0f) {
+	Image<Traits<unsigned char,CC>> v(u.width(), u.height());
 	for(unsigned int i=0; i<u.size(); i++) {
 		v[i] = std::max(0, std::min(255, static_cast<int>(scl * 255.0f * u[i])));
 	}
 	return v;
 }
 
-template<typename K, unsigned int CC>
-Image<K,CC> operator-(const Image<K,CC>& a, const Image<K,CC>& b) {
+template<typename T>
+Image<T> operator-(const Image<T>& a, const Image<T>& b) {
 	BOOST_ASSERT(a.dimensions() == b.dimensions());
-	Image<K,CC> c = a.clone();
+	Image<T> c = a.clone();
 	for(unsigned int i=0; i<c.size(); i++) {
 		c[i] -= b[i];
 	}
 	return c;
 }
 
-template<typename K, unsigned int CC>
-Image<K,CC> abs(const Image<K,CC>& a) {
-	Image<K,CC> c(a.width(), a.height());
+template<typename T>
+Image<T> abs(const Image<T>& a) {
+	Image<T> c(a.width(), a.height());
 	for(unsigned int i=0; i<c.size(); i++) {
 		c[i] = std::abs(a[i]);
 	}
@@ -413,13 +396,15 @@ Image<K,CC> abs(const Image<K,CC>& a) {
 }
 
 template<typename K>
-Image<K,1> Pick(const ImagePtr& raw, unsigned int c) {
-	Image<K,1> img(raw->width(), raw->height());
+Image<Traits<K,1>> Pick(const ImagePtr& raw, unsigned int c) {
+	Image<Traits<K,1>> img(raw->width(), raw->height());
 	img.buffer().copyFromInterleaved(static_cast<const K*>(raw->begin()) + c, raw->channelCount());
 	return img;
 }
 
 //----------------------------------------------------------------------------//
 }
+//----------------------------------------------------------------------------//
+#include "Types.hpp"
 //----------------------------------------------------------------------------//
 #endif
