@@ -17,16 +17,30 @@ namespace slimage {
 namespace opencv {
 
 	cv::Mat ConvertToOpenCv(const ImagePtr& pimg) {
-		Image3ub img = Ref<unsigned char,3>(pimg);
-		cv::Mat mat(img.height(),img.width(),CV_8UC3);
-		for(unsigned int y=0; y<img.height(); y++) {
-			for(unsigned int x=0; x<img.width(); x++) {
-				mat.ptr<unsigned char>(y, x)[2] = img(x,y)[0];
-				mat.ptr<unsigned char>(y, x)[1] = img(x,y)[1];
-				mat.ptr<unsigned char>(y, x)[0] = img(x,y)[2];
+		if(pimg->channelCount() == 1) {
+			Image1ub img = Ref<unsigned char,1>(pimg);
+			cv::Mat mat(img.height(),img.width(),CV_8UC3);
+			for(unsigned int y=0; y<img.height(); y++) {
+				for(unsigned int x=0; x<img.width(); x++) {
+					mat.ptr<unsigned char>(y, x)[0] = img(x,y);
+					mat.ptr<unsigned char>(y, x)[1] = img(x,y);
+					mat.ptr<unsigned char>(y, x)[2] = img(x,y);
+				}
 			}
+			return mat;
 		}
-		return mat;
+		else {
+			Image3ub img = Ref<unsigned char,3>(pimg);
+			cv::Mat mat(img.height(),img.width(),CV_8UC3);
+			for(unsigned int y=0; y<img.height(); y++) {
+				for(unsigned int x=0; x<img.width(); x++) {
+					mat.ptr<unsigned char>(y, x)[2] = img(x,y)[0];
+					mat.ptr<unsigned char>(y, x)[1] = img(x,y)[1];
+					mat.ptr<unsigned char>(y, x)[0] = img(x,y)[2];
+				}
+			}
+			return mat;
+		}
 	}
 
 	ImagePtr ConvertFromOpenCv(const cv::Mat& mat) {
