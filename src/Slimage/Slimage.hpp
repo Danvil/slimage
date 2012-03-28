@@ -376,12 +376,31 @@ Image<Traits<unsigned char,CC>> Convert_f_2_ub(const Image<Traits<float,CC>>& u,
 	return v;
 }
 
+template<typename U>
+Image<Traits<unsigned char,1>> Threshold(const Image<Traits<U,1>>& u, U threshold) {
+	Image<Traits<unsigned char,1>> v(u.width(), u.height());
+	for(unsigned int i=0; i<u.size(); i++) {
+		v[i] = (u[i] >= threshold) ? 255 : 0;
+	}
+	return v;
+}
+
 template<typename T>
 Image<T> operator-(const Image<T>& a, const Image<T>& b) {
 	BOOST_ASSERT(a.dimensions() == b.dimensions());
 	Image<T> c = a.clone();
 	for(unsigned int i=0; i<c.size(); i++) {
 		c[i] -= b[i];
+	}
+	return c;
+}
+
+template<typename T>
+Image<T> operator+(const Image<T>& a, const Image<T>& b) {
+	BOOST_ASSERT(a.dimensions() == b.dimensions());
+	Image<T> c = a.clone();
+	for(unsigned int i=0; i<c.size(); i++) {
+		c[i] += b[i];
 	}
 	return c;
 }
