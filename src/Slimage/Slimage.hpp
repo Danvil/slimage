@@ -143,11 +143,13 @@ struct Image
 		return width() * height();
 	}
 
-	bool hasSameSize(const Image& other) const {
+	template<typename S>
+	bool hasSameSize(const Image<S>& other) const {
 		return width() == other.width() && height() == other.height();
 	}
 
-	bool hasSameShape(const Image& other) const {
+	template<typename S>
+	bool hasSameShape(const Image<S>& other) const {
 		return hasSameSize(other) && this->channelCount() == other.channelCount();
 	}
 
@@ -386,6 +388,16 @@ Image<Traits<unsigned char,1>> Threshold(const Image<Traits<U,1>>& u, U threshol
 }
 
 template<typename T>
+Image<T> operator+(const Image<T>& a, const Image<T>& b) {
+	BOOST_ASSERT(a.dimensions() == b.dimensions());
+	Image<T> c = a.clone();
+	for(unsigned int i=0; i<c.size(); i++) {
+		c[i] += b[i];
+	}
+	return c;
+}
+
+template<typename T>
 Image<T> operator-(const Image<T>& a, const Image<T>& b) {
 	BOOST_ASSERT(a.dimensions() == b.dimensions());
 	Image<T> c = a.clone();
@@ -420,6 +432,16 @@ Image<Traits<K,1>> Pick(const ImagePtr& raw, unsigned int c) {
 	img.buffer().copyFromInterleaved(static_cast<const K*>(raw->begin()) + c, raw->channelCount());
 	return img;
 }
+
+template<typename K>
+Image<Traits<unsigned char,1>> Threshold(const Image<Traits<K,1>>& u, K t) {
+	Image<Traits<unsigned char,1>> v(u.width(), u.height());
+	for(unsigned int i=0; i<u.size(); i++) {
+		v[i] = (u[i] >= t) ? 255 : 0;
+	}
+	return v;
+}
+
 
 //----------------------------------------------------------------------------//
 }
