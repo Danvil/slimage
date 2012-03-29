@@ -218,6 +218,14 @@ struct Image
 		}
 	}
 
+	/** Multiplies all pixel values with a scalar */
+	template<typename K>
+	void operator*=(const K& v) const {
+		for(auto it=begin(); it!=end(); it++) {
+			*it *= v;
+		}
+	}
+
 	/** Creates a deep copied sub image */
 	Image sub(unsigned int x, unsigned int y, unsigned int w, unsigned int h) const {
 		unsigned int cc = this->channelCount();
