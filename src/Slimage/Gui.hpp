@@ -18,6 +18,19 @@ namespace slimage
 namespace gui
 {
 
+	void Show(const std::string& caption, const Image3ub& img) {
+		cv::Mat3b img_cv(img.height(), img.width());
+		for(unsigned int y=0; y<img.height(); y++) {
+			for(unsigned int x=0; x<img.width(); x++) {
+				img_cv[y][x][0] = img(x,y)[2];
+				img_cv[y][x][1] = img(x,y)[1];
+				img_cv[y][x][2] = img(x,y)[0];
+			}
+		}
+		cv::imshow(caption.c_str(), img_cv);
+		cv::waitKey(500);
+	}
+
 	void Show(const std::string& caption, const Image1ub& img) {
 		cv::Mat1b img_cv(img.height(), img.width());
 		for(unsigned int y=0; y<img.height(); y++) {
@@ -31,6 +44,10 @@ namespace gui
 
 	void Show(const std::string& caption, const Image1f& img, float scl) {
 		Show(caption, slimage::Convert_f_2_ub(img,scl));
+	}
+
+	void WaitForKeypress() {
+		while(cv::waitKey(100) == -1);
 	}
 
 }
