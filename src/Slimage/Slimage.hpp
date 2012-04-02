@@ -206,6 +206,10 @@ struct Image
 		buffer_.resize(n);
 	}
 
+	void resize(const point_t& dims) {
+		resize(dims.x, dims.y);
+	}
+
 	/** Creates a deep clone of this image */
 	Image clone() const {
 		return Image(width(), height(), this->channelCount(), this->buffer().clone());
@@ -367,24 +371,6 @@ bool HasType(const ImagePtr& ptr)
 }
 
 //----------------------------------------------------------------------------//
-
-template<unsigned int CC>
-Image<Traits<float,CC>> Convert_ub_2_f(const Image<Traits<unsigned char,CC>>& u) {
-	Image<Traits<float,CC>> v(u.width(), u.height());
-	for(unsigned int i=0; i<u.size(); i++) {
-		v[i] = float(u[i]) / 255.0f;
-	}
-	return v;
-}
-
-template<unsigned int CC>
-Image<Traits<unsigned char,CC>> Convert_f_2_ub(const Image<Traits<float,CC>>& u, float scl = 1.0f) {
-	Image<Traits<unsigned char,CC>> v(u.width(), u.height());
-	for(unsigned int i=0; i<u.size(); i++) {
-		v[i] = std::max(0, std::min(255, static_cast<int>(scl * 255.0f * u[i])));
-	}
-	return v;
-}
 
 template<typename U>
 Image<Traits<unsigned char,1>> Threshold(const Image<Traits<U,1>>& u, U threshold) {

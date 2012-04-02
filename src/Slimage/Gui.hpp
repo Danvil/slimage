@@ -11,6 +11,7 @@
 #include "Slimage.hpp"
 #include "IO.hpp"
 #include "Types.hpp"
+#include "Convert.hpp"
 #include <string>
 
 namespace slimage
@@ -43,7 +44,7 @@ namespace gui
 	}
 
 	void Show(const std::string& caption, const Image1f& img, float scl) {
-		Show(caption, slimage::Convert_f_2_ub(img,scl));
+		Show(caption, conversion::Convert<Image1f, Image1ub>(img));
 	}
 
 	void WaitForKeypress() {
