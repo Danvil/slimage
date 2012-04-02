@@ -38,7 +38,7 @@ struct Traits
 	typedef K_* pointer_t;
 	typedef K_& reference_t;
 	typedef K_ K;
-	enum { CC = CC_ };
+	static constexpr unsigned int CC = CC_;
 };
 
 //----------------------------------------------------------------------------//
@@ -134,14 +134,13 @@ struct Traits
 //
 //}
 
-
 template<typename T>
 struct Pixel
 {
 	typedef Pixel<T> SelfType;
 
 	typedef typename T::element_t K;
-	enum { CC = T::CC };
+	static constexpr unsigned int CC = T::CC;
 
 	K values[CC];
 
@@ -191,6 +190,36 @@ struct Pixel<Traits<K,1>>
 	}
 
 };
+
+namespace conversion
+{
+	template<typename K, typename L>
+	inline void Convert(K source, L& target);
+
+	template<typename K>
+	inline void Convert(K source, K& target) {
+		target = source;
+	}
+
+	template<>
+	inline void Convert(float source, unsigned char& target) {
+		target = std::min<unsigned char>(255, std::max<unsigned char>(0, static_cast<unsigned char>(source * 255.0f)));
+	}
+
+	template<>
+	inline void Convert(unsigned char source, float& target) {
+		target = static_cast<float>(source) / 255.0f;
+	}
+
+	template<typename U, typename T>
+	inline void Convert(const Pixel<U>& source, Pixel<T>& target) {
+		static_assert(T::CC == U::CC, "Channel count does not match!");
+		for(unsigned int i=0; i<T::CC; i++) {
+			Convert(source[i], target[i]);
+		}
+	}
+
+}
 
 //----------------------------------------------------------------------------//
 
