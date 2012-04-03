@@ -44,7 +44,9 @@ namespace gui
 	}
 
 	void Show(const std::string& caption, const Image1f& img, float scl) {
-		Show(caption, conversion::Convert<Image1f, Image1ub>(img));
+		Image1ub vis;
+		conversion::Convert(img, vis);
+		Show(caption, vis);
 	}
 
 	void WaitForKeypress() {

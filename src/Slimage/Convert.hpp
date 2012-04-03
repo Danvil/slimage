@@ -17,75 +17,72 @@ namespace slimage {
 namespace conversion
 {
 
-	namespace detail
-	{
-		template<typename K, typename L>
-		void Convert(K source, L& target);
+	template<typename K, typename L>
+	void Convert(K source, L& target);
 
-		template<typename K>
-		inline void Convert(K source, K& target) {
-			target = source;
-		}
+	template<typename K>
+	inline void Convert(K source, K& target) {
+		target = source;
+	}
 
-		template<>
-		inline void Convert(float source, unsigned char& target) {
-			target = std::min<unsigned char>(255, std::max<unsigned char>(0, static_cast<unsigned char>(source * 255.0f)));
-		}
+	template<>
+	inline void Convert(float source, unsigned char& target) {
+		target = std::min<unsigned char>(255, std::max<unsigned char>(0, static_cast<unsigned char>(source * 255.0f)));
+	}
 
-		template<>
-		inline void Convert(unsigned char source, float& target) {
-			target = static_cast<float>(source) / 255.0f;
-		}
+	template<>
+	inline void Convert(unsigned char source, float& target) {
+		target = static_cast<float>(source) / 255.0f;
+	}
 
-		template<>
-		inline void Convert(int source, uint16_t& target) {
-			target = static_cast<uint16_t>(source);
-		}
+	template<>
+	inline void Convert(int source, uint16_t& target) {
+		target = static_cast<uint16_t>(source);
+	}
 
-		template<>
-		inline void Convert(uint16_t source, int& target) {
-			target = static_cast<int>(source);
-		}
+	template<>
+	inline void Convert(uint16_t source, int& target) {
+		target = static_cast<int>(source);
+	}
 
-		template<typename U, typename T>
-		inline void Convert(const Pixel<U>& source, Pixel<T>& target) {
-			static_assert(T::CC == U::CC, "Channel count does not match!");
-			for(unsigned int i=0; i<T::CC; i++) {
-				Convert(source[i], target[i]);
-			}
-		}
-
-		template<typename U, typename T>
-		inline void Convert(const Pixel<U>& source, const PixelAccess<T>& target) {
-			static_assert(T::CC == U::CC, "Channel count does not match!");
-			for(unsigned int i=0; i<T::CC; i++) {
-				Convert(source[i], target[i]);
-			}
-		}
-
-		template<typename U, typename T>
-		inline void Convert(const PixelAccess<U>& source, const PixelAccess<T>& target) {
-			static_assert(T::CC == U::CC, "Channel count does not match!");
-			for(unsigned int i=0; i<T::CC; i++) {
-				Convert(source[i], target[i]);
-			}
-		}
-
-		template<typename U, typename T>
-		inline void Convert(const Image<U>& source, Image<T>& target) {
-			target.resize(source.dimensions());
-			for(unsigned int i=0; i<source.size(); i++) {
-				Convert(source[i], target[i]);
-			}
+	template<typename U, typename T>
+	inline void Convert(const Pixel<U>& source, Pixel<T>& target) {
+		static_assert(T::CC == U::CC, "Channel count does not match!");
+		for(unsigned int i=0; i<T::CC; i++) {
+			Convert(source[i], target[i]);
 		}
 	}
 
-	template<typename X, typename Y>
-	inline Y Convert(const X& x) {
-		Y y;
-		detail::Convert(x, y);
-		return y;
+	template<typename U, typename T>
+	inline void Convert(const Pixel<U>& source, const PixelAccess<T>& target) {
+		static_assert(T::CC == U::CC, "Channel count does not match!");
+		for(unsigned int i=0; i<T::CC; i++) {
+			Convert(source[i], target[i]);
+		}
 	}
+
+	template<typename U, typename T>
+	inline void Convert(const PixelAccess<U>& source, const PixelAccess<T>& target) {
+		static_assert(T::CC == U::CC, "Channel count does not match!");
+		for(unsigned int i=0; i<T::CC; i++) {
+			Convert(source[i], target[i]);
+		}
+	}
+
+	template<typename U, typename T>
+	inline void Convert(const Image<U>& source, Image<T>& target) {
+		target.resize(source.dimensions());
+		for(unsigned int i=0; i<source.size(); i++) {
+			Convert(source[i], target[i]);
+		}
+	}
+
+//	template<typename X, typename Y>
+//	inline Y Convert(const X& x) {
+//		Y y;
+//		Convert(x, y);
+//		return y;
+//	}
 
 //	template<unsigned int CC>
 //	Image<Traits<float,CC>> Convert_ub_2_f(const Image<Traits<unsigned char,CC>>& u) {
