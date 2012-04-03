@@ -117,6 +117,13 @@ struct Image
 		BOOST_ASSERT(buffer_.size() == width_ * height_ * this->channelCount());
 	}
 
+	Image(point_t dim, const pixel_t& p)
+	: width_(dim.x), height_(dim.y)
+	{
+		allocate();
+		fill(p);
+	}
+
 	Image(index_t w, index_t h, const pixel_t& p)
 	: width_(w), height_(h)
 	{

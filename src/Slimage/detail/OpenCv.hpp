@@ -16,7 +16,7 @@ namespace slimage {
 
 namespace opencv {
 
-	cv::Mat ConvertToOpenCv(const ImagePtr& pimg) {
+	inline cv::Mat ConvertToOpenCv(const ImagePtr& pimg) {
 		if(pimg->channelCount() == 1) {
 			Image1ub img = Ref<unsigned char,1>(pimg);
 			cv::Mat mat(img.height(),img.width(),CV_8UC3);
@@ -43,7 +43,7 @@ namespace opencv {
 		}
 	}
 
-	ImagePtr ConvertFromOpenCv(const cv::Mat& mat) {
+	inline ImagePtr ConvertFromOpenCv(const cv::Mat& mat) {
 		if(mat.type() == CV_8UC1) {
 			Image1ub img(mat.cols, mat.rows);
 			for(unsigned int y=0; y<img.height(); y++) {
@@ -72,12 +72,12 @@ namespace opencv {
 		}
 	}
 
-	void Save(const ImagePtr& img, const std::string& filename) {
+	inline void Save(const ImagePtr& img, const std::string& filename) {
 		cv::Mat mat = ConvertToOpenCv(img);
 		cv::imwrite(filename, mat);
 	}
 
-	ImagePtr Load(const std::string& filename) {
+	inline ImagePtr Load(const std::string& filename) {
 		cv::Mat mat = cv::imread(filename);
 		if(mat.rows == 0 && mat.cols == 0) {
 			throw IoException(filename, "Empty image (does the file exists?)");

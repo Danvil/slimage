@@ -43,28 +43,28 @@ namespace slimage
 
 #if defined SLIMAGE_IO_QT
 
-	void Save(const ImagePtr& img, const std::string& filename) {
+	inline void Save(const ImagePtr& img, const std::string& filename) {
 		qt::Save(img, filename);
 	}
 
-	ImagePtr Load(const std::string& filename) {
+	inline ImagePtr Load(const std::string& filename) {
 		return qt::Load(filename);
 	}
 
 #elif defined SLIMAGE_IO_OPENCV
 
-	void Save(const ImagePtr& img, const std::string& filename) {
+	inline void Save(const ImagePtr& img, const std::string& filename) {
 		opencv::Save(img, filename);
 	}
 
-	ImagePtr Load(const std::string& filename) {
+	inline ImagePtr Load(const std::string& filename) {
 		return opencv::Load(filename);
 	}
 
 #endif
 
 	/** Loads a 16 bit 1-channel image from an ASCII PGM file */
-	Image1ui16 Load1ui16(const std::string& filename) {
+	inline Image1ui16 Load1ui16(const std::string& filename) {
 		if(!boost::algorithm::ends_with(filename, ".pgm")) {
 			throw IoException(filename, "Load1ui16 can only handle PGM files");
 		}
@@ -122,7 +122,7 @@ namespace slimage
 	}
 
 	/** Saves a 1 channel 16 bit unsigned integer image to an ASCII PGM file */
-	void Save(const Image1ui16& img, const std::string& filename) {
+	inline void Save(const Image1ui16& img, const std::string& filename) {
 		if(!boost::algorithm::ends_with(filename, ".pgm")) {
 			throw IoException(filename, "Save for 1ui16 images can only handle PGM files");
 		}
@@ -144,7 +144,7 @@ namespace slimage
 	}
 
 #if defined SLIMAGE_IO_GZ
-	Image1ui16 Load16BitGZ(const std::string& filename) {
+	inline Image1ui16 Load16BitGZ(const std::string& filename) {
 		// custom gzip loading!
 		PTR(Danvil::ZIO::Handle) h = Danvil::ZIO::FactorReadHandle(filename);
 		size_t width, height, channels, type;
@@ -160,27 +160,27 @@ namespace slimage
 	}
 #endif
 
-	void Save(const Image1ub& img, const std::string& filename) {
+	inline void Save(const Image1ub& img, const std::string& filename) {
 		Save(Ptr(img), filename);
 	}
 
-	void Save(const Image3ub& img, const std::string& filename) {
+	inline void Save(const Image3ub& img, const std::string& filename) {
 		Save(Ptr(img), filename);
 	}
 
-	void Save(const Image4ub& img, const std::string& filename) {
+	inline void Save(const Image4ub& img, const std::string& filename) {
 		Save(Ptr(img), filename);
 	}
 
-	Image1ub Load1ub(const std::string& filename) {
+	inline Image1ub Load1ub(const std::string& filename) {
 		return Ref<unsigned char, 1>(Load(filename));
 	}
 
-	Image3ub Load3ub(const std::string& filename) {
+	inline Image3ub Load3ub(const std::string& filename) {
 		return Ref<unsigned char, 3>(Load(filename));
 	}
 
-	Image4ub Load4ub(const std::string& filename) {
+	inline Image4ub Load4ub(const std::string& filename) {
 		return Ref<unsigned char, 4>(Load(filename));
 	}
 
