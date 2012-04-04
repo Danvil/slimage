@@ -43,9 +43,9 @@ namespace gui
 		cv::waitKey(200);
 	}
 
-	inline void Show(const std::string& caption, const Image1f& img, float scl) {
+	inline void Show(const std::string& caption, const Image1f& img, float scl=1.0f) {
 		Image1ub vis;
-		conversion::Convert(img, vis);
+		conversion::Convert(slimage::Pixel1f{scl} * img, vis);
 		Show(caption, vis);
 	}
 
