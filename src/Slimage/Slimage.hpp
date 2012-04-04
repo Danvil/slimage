@@ -409,6 +409,15 @@ Image<T> operator-(const Image<T>& a, const Image<T>& b) {
 }
 
 template<typename T>
+Image<T> operator*(const Pixel<T>& a, const Image<T>& b) {
+	Image<T> c(b.dimensions());
+	for(unsigned int i=0; i<c.size(); i++) {
+		c[i] = a * b[i];
+	}
+	return c;
+}
+
+template<typename T>
 Image<T> abs(const Image<T>& a) {
 	Image<T> c(a.width(), a.height());
 	for(unsigned int i=0; i<c.size(); i++) {
