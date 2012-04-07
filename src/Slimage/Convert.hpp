@@ -27,7 +27,7 @@ namespace conversion
 
 	template<>
 	inline void Convert(float source, unsigned char& target) {
-		target = std::min<unsigned char>(255, std::max<unsigned char>(0, static_cast<unsigned char>(source * 255.0f)));
+		target = static_cast<unsigned char>(std::min<int>(255, std::max<int>(0, static_cast<int>(source * 255.0f))));
 	}
 
 	template<>
