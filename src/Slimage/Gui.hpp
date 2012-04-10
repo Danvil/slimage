@@ -19,7 +19,7 @@ namespace slimage
 namespace gui
 {
 
-	inline void Show(const std::string& caption, const Image3ub& img) {
+	inline void Show(const std::string& caption, const Image3ub& img, unsigned int delay=200) {
 		cv::Mat3b img_cv(img.height(), img.width());
 		for(unsigned int y=0; y<img.height(); y++) {
 			for(unsigned int x=0; x<img.width(); x++) {
@@ -29,10 +29,12 @@ namespace gui
 			}
 		}
 		cv::imshow(caption.c_str(), img_cv);
-		cv::waitKey(200);
+		if(delay > 0) {
+			cv::waitKey(delay);
+		}
 	}
 
-	inline void Show(const std::string& caption, const Image1ub& img) {
+	inline void Show(const std::string& caption, const Image1ub& img, unsigned int delay=200) {
 		cv::Mat1b img_cv(img.height(), img.width());
 		for(unsigned int y=0; y<img.height(); y++) {
 			for(unsigned int x=0; x<img.width(); x++) {
@@ -40,13 +42,15 @@ namespace gui
 			}
 		}
 		cv::imshow(caption.c_str(), img_cv);
-		cv::waitKey(200);
+		if(delay > 0) {
+			cv::waitKey(delay);
+		}
 	}
 
-	inline void Show(const std::string& caption, const Image1f& img, float scl=1.0f) {
+	inline void Show(const std::string& caption, const Image1f& img, float scl=1.0f, unsigned int delay=200) {
 		Image1ub vis;
 		conversion::Convert(slimage::Pixel1f{scl} * img, vis);
-		Show(caption, vis);
+		Show(caption, vis, delay);
 	}
 
 	inline void WaitForKeypress() {
