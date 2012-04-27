@@ -263,14 +263,19 @@ struct Image
 	}
 
 	/** Index of pixel data */
-	index_t getIndex(index_t x, index_t y) const {
+	index_t index(index_t x, index_t y) const {
 		BOOST_ASSERT(isValidIndex(x,y));
 		return this->channelCount() * (x + y*width());
 	}
 
+	/** @deprecated */
+	index_t getIndex(index_t x, index_t y) const {
+		return index(x,y);
+	}
+
 	/** A pointer to the pixel data */
 	K* pointer(index_t x, index_t y) const {
-		return buffer_.begin() + getIndex(x, y);
+		return buffer_.begin() + index(x, y);
 	}
 
 	/** A pointer to the start to the y-th line */
