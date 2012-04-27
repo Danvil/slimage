@@ -53,6 +53,10 @@ namespace gui
 		Show(caption, vis, delay);
 	}
 
+	inline void Wait(unsigned int delay=200) {
+		cv::waitKey(delay);
+	}
+
 	inline void WaitForKeypress() {
 		while(cv::waitKey(50) == -1);
 	}
