@@ -15,7 +15,7 @@ namespace slimage
 {
 
 	template<typename K>
-	Image<K,3> ConvertToOpenGl(const Image<K,3>& img)
+	Image<Traits<K,3>> ConvertToOpenGl(const Image<Traits<K,3>>& img)
 	{
 		unsigned int size = 1;
 		unsigned int w = img.width();
@@ -23,7 +23,7 @@ namespace slimage
 		while(size < w || size < h) {
 			size <<= 1;
 		}
-		Image<K,3> glImg(size, size);
+		Image<Traits<K,3>> glImg(size, size);
 		for(unsigned int i=0; i<size; i++) {
 			K* dst = glImg.scanline(i);
 			const K* src = img.scanline(i);

@@ -27,6 +27,10 @@ struct Iterator
 		return p_;
 	}
 
+	operator K*() const {
+		return p_;
+	}
+
 	PixelAccess<T> operator*() const {
 		return { p_ };
 	}
