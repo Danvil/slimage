@@ -118,7 +118,7 @@ namespace qt {
 	inline
 	ImagePtr ConvertFromQt(const QImage& qimg)
 	{
-		std::cout << qimg.format() << std::endl;
+//		std::cout << qimg.format() << std::endl;
 		if(qimg.format() == QImage::Format_Indexed8) {
 			unsigned int w = qimg.width();
 			unsigned int h = qimg.height();
