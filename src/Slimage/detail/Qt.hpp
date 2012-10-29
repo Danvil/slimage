@@ -157,6 +157,7 @@ namespace qt {
 		}
 	}
 
+	inline
 	void Save(const ImagePtr& img, const std::string& filename) {
 		QImage* qimg = ConvertToQt(img);
 		if(qimg) {
@@ -164,6 +165,7 @@ namespace qt {
 		}
 	}
 
+	inline
 	ImagePtr Load(const std::string& filename) {
 		return ConvertFromQt(QImage(QString::fromStdString(filename)));
 	}
