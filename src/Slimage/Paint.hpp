@@ -15,7 +15,7 @@ namespace slimage {
 //----------------------------------------------------------------------------//
 
 template<typename T>
-void PaintPoint(const slimage::Image<T>& img, int px, int py, const Pixel<T>& color, int size=1)
+void PaintPoint(const Image<T>& img, int px, int py, const Pixel<T>& color, int size=1)
 {
 	if(px < 0 || int(img.width()) <= px || py < 0 || int(img.height()) <= py) {
 		return;
@@ -78,7 +78,7 @@ void PaintPoint(const slimage::Image<T>& img, int px, int py, const Pixel<T>& co
 
 /** Paints a line */
 template<typename T>
-void PaintLine(const slimage::Image<T>& img, int x0, int y0, int x1, int y1, const Pixel<T>& color)
+void PaintLine(const Image<T>& img, int x0, int y0, int x1, int y1, const Pixel<T>& color)
 {
 //	assert(0 <= x0 && x0 < img.width());
 //	assert(0 <= x1 && x1 < img.width());
@@ -133,7 +133,7 @@ void PaintLine(const slimage::Image<T>& img, int x0, int y0, int x1, int y1, con
 }
 
 template<typename T>
-void PaintEllipse(const slimage::Image<T>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<T>& color)
+void PaintEllipse(const Image<T>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<T>& color)
 {
 //	PaintLine(img, cx+ux+vx, cy+uy+vy, cx+ux-vx, cy+uy-vy, color);
 //	PaintLine(img, cx+ux-vx, cy+uy-vy, cx-ux-vx, cy-uy-vy, color);
@@ -155,7 +155,7 @@ void PaintEllipse(const slimage::Image<T>& img, int cx, int cy, int ux, int uy, 
 }
 
 template<typename T>
-void FillEllipse(const slimage::Image<T>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<T>& color)
+void FillEllipse(const Image<T>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<T>& color)
 {
 	// FIXME implement filling!
 	const unsigned int N = 16;
@@ -170,6 +170,27 @@ void FillEllipse(const slimage::Image<T>& img, int cx, int cy, int ux, int uy, i
 		PaintLine(img, last_x, last_y, x, y, color);
 		last_x = x;
 		last_y = y;
+	}
+}
+
+template<typename T>
+void PaintBox(const Image<T>& img, int x, int y, int w, int h, const Pixel<T>& color)
+{
+	const int x0 = std::max<int>(0, x);
+	const int x1 = std::min<int>(img.width(), x+w+1);
+	const int y0 = std::max<int>(0, y);
+	const int y1 = std::min<int>(img.height(), y+h+1);
+	for(int i=x0; i<x1; i++) {
+		if(y >= 0 && y < img.height())
+			img(i,y) = color;
+		if(y+h >= 0 && y+h < img.height())
+			img(i,y+h) = color;
+	}
+	for(int i=y0; i<y1; i++) {
+		if(x >= 0 && x < img.width())
+			img(x,i) = color;
+		if(x+w >= 0 && x+w < img.width())
+			img(x+w,i) = color;
 	}
 }
 
