@@ -194,6 +194,20 @@ void PaintBox(const Image<T>& img, int x, int y, int w, int h, const Pixel<T>& c
 	}
 }
 
+template<typename T>
+void FillBox(const Image<T>& img, int x, int y, int w, int h, const Pixel<T>& color)
+{
+	const int x0 = std::max<int>(0, x);
+	const int x1 = std::min<int>(img.width(), x+w+1);
+	const int y0 = std::max<int>(0, y);
+	const int y1 = std::min<int>(img.height(), y+h+1);
+	for(int i=x0; i<x1; i++) {
+		for(int j=y0; j<y1; j++) {
+			img(i,j) = color;
+		}
+	}
+}
+
 //----------------------------------------------------------------------------//
 }
 //----------------------------------------------------------------------------//
