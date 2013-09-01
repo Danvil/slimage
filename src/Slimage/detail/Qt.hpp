@@ -163,6 +163,7 @@ namespace qt {
 		if(qimg) {
 			qimg->save(QString::fromStdString(filename));
 		}
+		delete qimg;
 	}
 
 	inline
