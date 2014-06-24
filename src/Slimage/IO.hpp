@@ -63,6 +63,18 @@ namespace slimage
 
 #endif
 
+	inline
+	bool ReadDataLine(std::istream& is, std::string& line)
+	{
+		while(!is.eof()) {
+			getline(is, line);
+			if(line.size() > 0 && line[0] != '#') {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/** Loads a 16 bit 1-channel image from an ASCII PGM file */
 	inline Image1ui16 Load1ui16(const std::string& filename) {
 		if(!boost::algorithm::ends_with(filename, ".pgm")) {
@@ -75,13 +87,14 @@ namespace slimage
 		std::string line;
 		std::vector<std::string> tokens;
 		// read magic line
-		getline(ifs, line);
+		ReadDataLine(ifs, line);
 		boost::split(tokens, line, boost::is_any_of(" "));
-		if(tokens.size() != 1 || tokens[0] != "P2") {
+		if(tokens.size() != 1 || !(tokens[0] == "P2" || tokens[0] == "P5")) {
 			throw IoException(filename, "Wrong PGM file header (P2 id)");
 		}
+		std::string pmode = tokens[0];
 		// read dimensions line
-		getline(ifs, line);
+		ReadDataLine(ifs, line);
 		boost::split(tokens, line, boost::is_any_of(" "));
 		unsigned int w, h;
 		if(tokens.size() != 2) {
@@ -94,29 +107,41 @@ namespace slimage
 			throw IoException(filename, "Wrong PGM file header (width/height)");
 		}
 		// read max line
-		getline(ifs, line);
+		ReadDataLine(ifs, line);
 		boost::split(tokens, line, boost::is_any_of(" "));
 		if(tokens.size() != 1 || tokens[0] != "65535") {
 			throw IoException(filename, "Wrong PGM file header (max value)");
 		}
 		// read data
 		Image1ui16 img(w, h);
-		unsigned int y = 0;
-		while(getline(ifs, line)) {
-			boost::split(tokens, line, boost::is_any_of(" "));
-			if(tokens.back().empty()) {
-				tokens.pop_back();
+		if(pmode == "P2") {
+			unsigned int y = 0;
+			while(ReadDataLine(ifs, line)) {
+				boost::split(tokens, line, boost::is_any_of(" "));
+				if(tokens.back().empty()) {
+					tokens.pop_back();
+				}
+				if(tokens.size() != w) {
+					throw IoException(filename, "Width and number of tokens in line do not match");
+				}
+				for(unsigned int x=0; x<w; x++) {
+					img(x,y) = boost::lexical_cast<unsigned int>(tokens[x]);
+				}
+				y++;
 			}
-			if(tokens.size() != w) {
-				throw IoException(filename, "Width and number of tokens in line do not match");
+			if(y != h) {
+				throw IoException(filename, "Height and number of lines do not match");
 			}
-			for(unsigned int x=0; x<w; x++) {
-				img(x,y) = boost::lexical_cast<unsigned int>(tokens[x]);
-			}
-			y++;
 		}
-		if(y != h) {
-			throw IoException(filename, "Height and number of lines do not match");
+		if(pmode == "P5") {
+			std::vector<char> dataline(img.size()*2);
+			ifs.read(dataline.data(), img.size()*2);
+			for(unsigned i=0; i<img.size(); i++) {
+				uint16_t v;
+				reinterpret_cast<char*>(&v)[1] = dataline[2*i];
+				reinterpret_cast<char*>(&v)[0] = dataline[2*i + 1];
+				img[i] = v;
+			}
 		}
 		return img;
 	}
