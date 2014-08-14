@@ -89,7 +89,6 @@ namespace slimage
 		const_iterator_t end() const
 		{ return const_iterator_t{pixel_pointer(size())}; }
 
-	private:
 		size_t index(idx_t x, idx_t y) const
 		{
 			assert(0 <= x && x < width_);
