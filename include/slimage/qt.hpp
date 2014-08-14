@@ -1,7 +1,6 @@
 #pragma once
 
 #include <slimage/image.hpp>
-#include <slimage/anonymous.hpp>
 #include <slimage/error.hpp>
 #include <QtGui/QImage>
 #define SLIMAGE_QT_INC

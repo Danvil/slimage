@@ -1,7 +1,6 @@
 #pragma once
 
 #include <slimage/image.hpp>
-#include <slimage/anonymous.hpp>
 #include <slimage/error.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #define SLIMAGE_OPENCV_INC
