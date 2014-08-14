@@ -70,11 +70,11 @@ namespace slimage
 		{ return *(begin() + i); }
 
 		reference_t operator()(idx_t x, idx_t y)
-		//{ return make_ref(pixel_pointer(index(x,y)), Integer<CC>()); }
+		//{ return make_ref(pixel_pointer(x,y), Integer<CC>()); }
 		{ return *(begin() + index(x,y)); }
 
 		const_reference_t operator()(idx_t x, idx_t y) const
-		//{ return make_ref(pixel_pointer(index(x,y)), Integer<CC>()); }
+		//{ return make_ref(pixel_pointer(x,y), Integer<CC>()); }
 		{ return *(begin() + index(x,y)); }
 
 		iterator_t begin()
@@ -95,6 +95,12 @@ namespace slimage
 			assert(0 <= y && y < height_);
 			return x + y*width_;
 		}
+
+		pointer_t pixel_pointer(idx_t x, idx_t y)
+		{ return data_.data() + CC*index(x,y); } 
+
+		const_pointer_t pixel_pointer(idx_t x, idx_t y) const
+		{ return data_.data() + CC*index(x,y); } 
 
 		pointer_t pixel_pointer(size_t i)
 		{
