@@ -3,6 +3,7 @@
 #include <slimage/pixel.hpp>
 #include <slimage/iterator.hpp>
 #include <algorithm>
+#include <tuple>
 #include <vector>
 #include <memory>
 #include <cassert>
@@ -22,6 +23,7 @@ namespace slimage
 		using const_iterator_t = Iterator<const K,CC>;
 		using reference_t = typename iterator_t::reference_t;
 		using const_reference_t = typename const_iterator_t::reference_t;
+		using dim_t = std::tuple<unsigned,unsigned>;
 
 		Image()
 		:	width_(0),
@@ -42,6 +44,14 @@ namespace slimage
 			std::fill(begin(), end(), value);
 		}
 
+		Image(dim_t dim)
+		:	Image(std::get<0>(dim), std::get<1>(dim))
+		{}
+
+		Image(dim_t dim, const Pixel<K,CC>& value)
+		:	Image(std::get<0>(dim), std::get<1>(dim), value)
+		{}
+
 		/** Width of image */
 		unsigned width() const
 		{ return width_; }
@@ -49,6 +59,9 @@ namespace slimage
 		/** Height of image */
 		unsigned height() const
 		{ return height_; }
+
+		dim_t dimensions() const
+		{ return std::make_tuple(width(), height()); }
 
 		/** Number of elements per pixel */
 		unsigned channelCount() const
