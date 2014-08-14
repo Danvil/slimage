@@ -52,6 +52,9 @@ namespace slimage
 		:	Image(std::get<0>(dim), std::get<1>(dim), value)
 		{}
 
+		bool empty() const
+		{ return width_ == 0 && height_ == 0; }
+
 		/** Width of image */
 		unsigned width() const
 		{ return width_; }
