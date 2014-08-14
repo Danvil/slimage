@@ -2,6 +2,7 @@
 
 #include <slimage/pixel.hpp>
 #include <slimage/image.hpp>
+#include <algorithm>
 #include <cmath>
 
 namespace slimage
@@ -38,6 +39,49 @@ namespace slimage
 		return dst;
 	}
 
+	template<typename K, unsigned CC>
+	slimage::Image<K,CC> SubImage(const slimage::Image<K,CC>& img, unsigned x, unsigned y, unsigned w, unsigned h)
+	{
+		slimage::Image<K,CC> result(w, h);	
+		throw 0; // FIXME
+		return result;
+	}
+
+	template<typename K, unsigned CC>
+	slimage::Image<K,CC> FlipY(const slimage::Image<K,CC>& img)
+	{
+		slimage::Image<K,CC> result(img.dimensions());
+		throw 0; // FIXME
+		return result;
+	}
+
+	template<typename K>
+	Image<K,3> ConvertToOpenGl(const Image<K,3>& img)
+	{
+		unsigned int size = 1;
+		unsigned int w = img.width();
+		unsigned int h = img.height();
+		while(size < w || size < h) {
+			size <<= 1;
+		}
+		Image<K,3> glImg(size, size);
+		for(unsigned int i=0; i<size; i++) {
+			K* dst = glImg.pixel_pointer(0, i);
+			const K* src = img.pixel_pointer(0, i);
+			unsigned int a;
+			if( i < h ) {
+				// copy first part of line with src data
+				a = 3 * img.width();
+				std::copy(src, src + a, dst);
+			} else {
+				// first part is empty because no src data for this line
+				a = 0;
+			}
+			// fill rest of line with zeros
+			std::fill(dst + a, dst + 3 * glImg.width(), 0);
+		}
+		return glImg;
+	}
 
 	template<typename K, unsigned CC>
 	void PaintPoint(const Image<K,CC>& img, int px, int py, const Pixel<K,CC>& color, int size=1)
