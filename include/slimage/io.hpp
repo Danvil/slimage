@@ -2,7 +2,6 @@
 
 #include <slimage/io_1ui16.hpp>
 #include <slimage/image.hpp>
-#include <slimage/types.hpp>
 #include <slimage/anonymous.hpp>
 #include <string>
 

@@ -7,8 +7,23 @@
 namespace slimage
 {
 
+	namespace detail
+	{
+		template<typename K, unsigned CC>
+		struct PixelType
+		{
+			using type = std::array<K,CC>;
+		};
+
+		template<typename K>
+		struct PixelType<K,1>
+		{
+			using type = K;
+		};
+	}
+
 	template<typename K, unsigned CC>
-	using Pixel = std::array<K,CC>;
+	using Pixel = typename detail::PixelType<K,CC>::type;
 
 	template<typename K, unsigned CC>
 	class PixelReference

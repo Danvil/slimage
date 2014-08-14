@@ -1,7 +1,6 @@
 #pragma once
 
 #include <slimage/image.hpp>
-#include <slimage/types.hpp>
 #include <slimage/error.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
