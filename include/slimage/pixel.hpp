@@ -71,6 +71,7 @@ namespace slimage
 	struct PixelTraits
 	{
 		using pixel_t = Pixel<K,CC>;
+		using pointer_t = Pixel<K,CC>*;
 		using reference_t = PixelReference<K,CC>;
 	};
 
@@ -78,6 +79,7 @@ namespace slimage
 	struct PixelTraits<K,1>
 	{
 		using pixel_t = K;
+		using pointer_t = K*;
 		using reference_t = K&;
 	};
 }

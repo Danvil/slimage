@@ -2,6 +2,7 @@
 
 #include <slimage/pixel.hpp>
 #include <vector>
+#include <iterator>
 #include <cassert>
 
 namespace slimage
@@ -28,27 +29,40 @@ namespace slimage
 
 	template<typename K, unsigned CC>
 	class Iterator
+	:	public std::iterator<
+			std::random_access_iterator_tag,
+			typename PixelTraits<K,CC>::pixel_t,
+			std::ptrdiff_t,
+			typename PixelTraits<K,CC>::pointer_t,
+			typename PixelTraits<K,CC>::reference_t
+		>
 	{
 	public:
 		using element_t = K;
-		using pointer_t = element_t*;
-		using reference_t = typename PixelTraits<K,CC>::reference_t;
-		using diff_t = ssize_t;
+		using std_iterator_base_t = std::iterator<
+			std::random_access_iterator_tag,
+			typename PixelTraits<K,CC>::pixel_t,
+			std::ptrdiff_t,
+			typename PixelTraits<K,CC>::pointer_t,
+			typename PixelTraits<K,CC>::reference_t
+		>;
+		using reference = typename std_iterator_base_t::reference;
+		using difference_type = typename std_iterator_base_t::difference_type;
 
-		Iterator(pointer_t ptr=nullptr)
+		Iterator(element_t* ptr = nullptr)
 		:	ptr_(ptr)
 		{}
 
 		Iterator(const Iterator& it) = default;
 		Iterator& operator=(const Iterator& it) = default;
 
-		reference_t operator*() const
+		reference operator*() const
 		{ return make_ref(ptr_, Integer<CC>()); }
 
-		reference_t operator[](diff_t n) const
+		reference operator[](difference_type n) const
 		{ return make_ref(ptr_ + CC*n, Integer<CC>()); }
 
-		pointer_t operator->() const
+		element_t* operator->() const
 		{
 			assert(CC == 1); // FIXME
 			return ptr_;
@@ -60,10 +74,10 @@ namespace slimage
 		Iterator operator++(int)
 		{ return Iterator(detail::post_add(ptr_,CC)); }
 
-		Iterator& operator+=(diff_t n)
+		Iterator& operator+=(difference_type n)
 		{ ptr_ += CC*n; return *this; }
 
-		Iterator operator+(diff_t n) const
+		Iterator operator+(difference_type n) const
 		{ return Iterator(ptr_ + CC*n); }
 
 		Iterator& operator--()
@@ -72,17 +86,17 @@ namespace slimage
 		Iterator operator--(int)
 		{ return Iterator(detail::post_sub(ptr_,CC)); }
 
-		Iterator& operator-=(diff_t n)
+		Iterator& operator-=(difference_type n)
 		{ ptr_ -= CC*n; return *this; }
 
-		Iterator operator-(diff_t n) const
+		Iterator operator-(difference_type n) const
 		{ return Iterator(ptr_ - CC*n); }
 
-		pointer_t base() const
+		element_t* base() const
 		{ return ptr_; }
 
 	private:
-		pointer_t ptr_;
+		element_t* ptr_;
 	};
 
 	template<typename K1, typename K2, unsigned CC>

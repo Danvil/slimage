@@ -17,12 +17,10 @@ namespace slimage
 	public:
 		using idx_t = IDX;
 		using element_t = K;
-		using pointer_t = element_t*;
-		using const_pointer_t = const element_t*;
 		using iterator_t = Iterator<K,CC>;
 		using const_iterator_t = Iterator<const K,CC>;
-		using reference_t = typename iterator_t::reference_t;
-		using const_reference_t = typename const_iterator_t::reference_t;
+		using reference_t = typename iterator_t::reference;
+		using const_reference_t = typename const_iterator_t::reference;
 		using dim_t = std::tuple<unsigned,unsigned>;
 
 		Image()
@@ -33,13 +31,13 @@ namespace slimage
 		Image(idx_t width, idx_t height)
 		:	width_(width),
 			height_(height),
-			data_(width*height*CC)
+			data_(CC*width*height)
 		{}
 
 		Image(idx_t width, idx_t height, const Pixel<K,CC>& value)
 		:	width_(width),
 			height_(height),
-			data_(width*height*CC)
+			data_(CC*width*height)
 		{
 			std::fill(begin(), end(), value);
 		}
@@ -51,6 +49,16 @@ namespace slimage
 		Image(dim_t dim, const Pixel<K,CC>& value)
 		:	Image(std::get<0>(dim), std::get<1>(dim), value)
 		{}
+
+		void resize(idx_t width, idx_t height)
+		{
+			width_ = width;
+			height_ = height;
+			data_.resize(CC*width_*height_);
+		}
+
+		void resize(dim_t dim)
+		{ resize(std::get<0>(dim), std::get<1>(dim)); }
 
 		bool empty() const
 		{ return width_ == 0 && height_ == 0; }
@@ -106,26 +114,28 @@ namespace slimage
 		const_iterator_t end() const
 		{ return const_iterator_t{pixel_pointer(size())}; }
 
+		bool isValidIndex(idx_t x, idx_t y) const
+		{ return 0 <= x && x < width_ && 0 <= y && y < height_; }
+
 		size_t index(idx_t x, idx_t y) const
 		{
-			assert(0 <= x && x < width_);
-			assert(0 <= y && y < height_);
+			assert(isValidIndex(x,y));
 			return x + y*width_;
 		}
 
-		pointer_t pixel_pointer(idx_t x, idx_t y)
+		element_t* pixel_pointer(idx_t x, idx_t y)
 		{ return data_.data() + CC*index(x,y); } 
 
-		const_pointer_t pixel_pointer(idx_t x, idx_t y) const
+		const element_t* pixel_pointer(idx_t x, idx_t y) const
 		{ return data_.data() + CC*index(x,y); } 
 
-		pointer_t pixel_pointer(size_t i)
+		element_t* pixel_pointer(size_t i)
 		{
 			assert(i < data_.size());
 			return data_.data() + CC*i;
 		} 
 
-		const_pointer_t pixel_pointer(size_t i) const
+		const element_t* pixel_pointer(size_t i) const
 		{
 			assert(i < data_.size());
 			return data_.data() + CC*i;

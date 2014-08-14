@@ -10,9 +10,9 @@ namespace slimage
 	inline
 	AnonymousImage Load(const std::string& fn)
 	{
-#ifdef SLIMAGE_OPENCV_INC
+#if defined SLIMAGE_OPENCV_INC
 		return OpenCvLoad(fn);
-#elif SLIMAGE_QT_INC
+#elif defined SLIMAGE_QT_INC
 		return QtLoad(fn);
 #else
 		static_assert(false, "Include either slimage/opencv.hpp or slimage/qt.hpp to load images");
@@ -22,10 +22,10 @@ namespace slimage
 	inline
 	void Save(const std::string& fn, const AnonymousImage& aimg)
 	{
-#ifdef SLIMAGE_OPENCV_INC
+#if defined SLIMAGE_OPENCV_INC
 		return OpenCvSave(fn, aimg);
-#elif SLIMAGE_QT_INC
-		return QtSave(fn);
+#elif defined SLIMAGE_QT_INC
+		return QtSave(fn, aimg);
 #else
 		static_assert(false, "Include either slimage/opencv.hpp or slimage/qt.hpp to save images");
 #endif
@@ -38,7 +38,7 @@ namespace slimage
 
 	#define SLIMAGE_IO_SAVE_HELP(K,CC,S) \
 		inline \
-		void Save##CC##S(const std::string& fn, const slimage::Image##CC##S& img) \
+		void Save(const std::string& fn, const slimage::Image##CC##S& img) \
 		{ Save(fn, make_anonymous<K,CC>(img)); }
 
 	#define SLIMAGE_IO_HELP(K,CC,S) \
@@ -59,6 +59,8 @@ namespace slimage
 	// SLIMAGE_IO_HELP(uint16_t, 1, ui16)
 	// SLIMAGE_IO_HELP(int, 1, i)
 
-	#undef SLIMAGE_LOAD_HELP
+	#undef SLIMAGE_IO_HELP
+	#undef SLIMAGE_IO_LOAD_HELP
+	#undef SLIMAGE_IO_SAVE_HELP
 
 }

@@ -93,7 +93,7 @@ namespace slimage
 	}
 
 	/** Saves a 1 channel 16 bit unsigned integer image to an ASCII PGM file */
-	inline void Save(const Image1ui16& img, const std::string& filename) {
+	inline void Save(const std::string& filename, const Image1ui16& img) {
 		if(!boost::algorithm::ends_with(filename, ".pgm")) {
 			throw IoException(filename, "Save for 1ui16 images can only handle PGM files");
 		}

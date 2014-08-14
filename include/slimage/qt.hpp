@@ -54,7 +54,7 @@ namespace slimage
 		}
 		imgQt->setColorTable(colors);
 		for(uint i=0; i<h; i++) {
-			const unsigned char* src = mask.scanline(i);
+			const unsigned char* src = mask.pixel_pointer(0, i);
 			unsigned char* dst = imgQt->scanLine(i);
 			std::copy(src, src + w, dst);
 		}
@@ -68,7 +68,7 @@ namespace slimage
 		unsigned int w = img.width();
 		QImage* imgQt = new QImage(w, h, QImage::Format_RGB32);
 		for(unsigned int i=0; i<h; i++) {
-			const unsigned char* src = img.scanline(i);
+			const unsigned char* src = img.pixel_pointer(0, i);
 			unsigned char* dst = imgQt->scanLine(i);
 			detail::copy_RGB_to_BGRA_8bit(src, src + 3*w, dst, 255);
 		}
@@ -82,7 +82,7 @@ namespace slimage
 		unsigned int w = img.width();
 		QImage* imgQt = new QImage(w, h, QImage::Format_ARGB32);
 		for(unsigned int i=0; i<h; i++) {
-			const unsigned char* src = img.scanline(i);
+			const unsigned char* src = img.pixel_pointer(0, i);
 			unsigned char* dst = imgQt->scanLine(i);
 			detail::copy_RGBA_to_BGRA_8bit(src, src + 4*w, dst);
 		}
@@ -118,7 +118,7 @@ namespace slimage
 			Image1ub img(w, h);
 			for(unsigned int i=0; i<h; i++) {
 				const unsigned char* src = qimg.scanLine(i);
-				unsigned char* dst = img.scanline(i);
+				unsigned char* dst = img.pixel_pointer(0, i);
 				std::copy(src, src+w, dst);
 			}
 			return make_anonymous(img);
@@ -129,7 +129,7 @@ namespace slimage
 			Image3ub img(w, h);
 			for(unsigned int i=0; i<h; i++) {
 				const unsigned char* src = qimg.scanLine(i);
-				unsigned char* dst = img.scanline(i);
+				unsigned char* dst = img.pixel_pointer(0, i);
 				detail::copy_RGBA_to_BGR_8bit(src, src + 4*w, dst);
 			}
 			return make_anonymous(img);
@@ -140,7 +140,7 @@ namespace slimage
 			Image4ub img(w, h);
 			for(unsigned int i=0; i<h; i++) {
 				const unsigned char* src = qimg.scanLine(i);
-				unsigned char* dst = img.scanline(i);
+				unsigned char* dst = img.pixel_pointer(0, i);
 				detail::copy_RGBA_to_BGRA_8bit(src, src + 4*w, dst);
 			}
 			return make_anonymous(img);
@@ -152,7 +152,7 @@ namespace slimage
 	}
 
 	inline
-	void QtSave(const AnonymousImage& img, const std::string& filename)
+	void QtSave(const std::string& filename, const AnonymousImage& img)
 	{
 		QImage* qimg = ConvertToQt(img);
 		if(qimg) {

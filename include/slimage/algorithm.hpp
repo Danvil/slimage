@@ -24,7 +24,19 @@ namespace slimage
 	}
 
 	template<typename SRC, unsigned CC, typename F>
-	auto Convert(const slimage::Image<SRC,CC>& src, F fnc)
+	auto Convert(const Image<SRC,CC>& src, F fnc)
+	-> typename detail::ImageFromPixelType<typename std::decay<decltype(fnc(src[0]))>::type>::type
+	{
+		using img_t = typename detail::ImageFromPixelType<typename std::decay<decltype(fnc(src[0]))>::type>::type;
+		img_t dst{src.dimensions()};
+		for(size_t i=0; i<src.size(); i++) {
+			dst[i] = fnc(src[i]);
+		}
+		return dst;
+	}
+
+	template<typename SRC, unsigned CC, typename F>
+	auto ConvertUV(const Image<SRC,CC>& src, F fnc)
 	-> typename detail::ImageFromPixelType<typename std::decay<decltype(fnc(0,0,src[0]))>::type>::type
 	{
 		using img_t = typename detail::ImageFromPixelType<typename std::decay<decltype(fnc(0,0,src[0]))>::type>::type;
@@ -40,17 +52,37 @@ namespace slimage
 	}
 
 	template<typename K, unsigned CC>
-	slimage::Image<K,CC> SubImage(const slimage::Image<K,CC>& img, unsigned x, unsigned y, unsigned w, unsigned h)
+	Image<K,1> PickChannel(const Image<K,CC>& img, unsigned c)
 	{
-		slimage::Image<K,CC> result(w, h);	
+		assert(c < CC);
+		return Convert(img, [c](const Pixel<K,CC>& v) { return v[c]; });
+	}
+
+	template<typename K>
+	Image<K,1> PickChannel(const Image<K,1>& img, unsigned c)
+	{
+		assert(c == 0);
+		return img;
+	}
+
+	template<typename K, unsigned CC>
+	void Fill(Image<K,CC>& img, const Pixel<K,CC>& v)
+	{
+		std::fill(img.begin(), img.end(), v);
+	}
+
+	template<typename K, unsigned CC>
+	Image<K,CC> SubImage(const Image<K,CC>& img, unsigned x, unsigned y, unsigned w, unsigned h)
+	{
+		Image<K,CC> result(w, h);	
 		throw 0; // FIXME
 		return result;
 	}
 
 	template<typename K, unsigned CC>
-	slimage::Image<K,CC> FlipY(const slimage::Image<K,CC>& img)
+	Image<K,CC> FlipY(const Image<K,CC>& img)
 	{
-		slimage::Image<K,CC> result(img.dimensions());
+		Image<K,CC> result(img.dimensions());
 		throw 0; // FIXME
 		return result;
 	}
@@ -84,7 +116,7 @@ namespace slimage
 	}
 
 	template<typename K, unsigned CC>
-	void PaintPoint(const Image<K,CC>& img, int px, int py, const Pixel<K,CC>& color, int size=1)
+	void PaintPoint(Image<K,CC>& img, int px, int py, const Pixel<K,CC>& color, int size=1)
 	{
 		if(px < 0 || int(img.width()) <= px || py < 0 || int(img.height()) <= py) {
 			return;
@@ -147,7 +179,7 @@ namespace slimage
 
 	/** Paints a line */
 	template<typename K, unsigned CC>
-	void PaintLine(const Image<K,CC>& img, int x0, int y0, int x1, int y1, const Pixel<K,CC>& color)
+	void PaintLine(Image<K,CC>& img, int x0, int y0, int x1, int y1, const Pixel<K,CC>& color)
 	{
 	//	assert(0 <= x0 && x0 < img.width());
 	//	assert(0 <= x1 && x1 < img.width());
@@ -202,7 +234,7 @@ namespace slimage
 	}
 
 	template<typename K, unsigned CC>
-	void PaintEllipse(const Image<K,CC>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<K,CC>& color)
+	void PaintEllipse(Image<K,CC>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<K,CC>& color)
 	{
 	//	PaintLine(img, cx+ux+vx, cy+uy+vy, cx+ux-vx, cy+uy-vy, color);
 	//	PaintLine(img, cx+ux-vx, cy+uy-vy, cx-ux-vx, cy-uy-vy, color);
@@ -224,7 +256,7 @@ namespace slimage
 	}
 
 	template<typename K, unsigned CC>
-	void FillEllipse(const Image<K,CC>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<K,CC>& color)
+	void FillEllipse(Image<K,CC>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<K,CC>& color)
 	{
 		// FIXME implement filling!
 		const unsigned int N = 16;
@@ -243,7 +275,7 @@ namespace slimage
 	}
 
 	template<typename K, unsigned CC>
-	void PaintBox(const Image<K,CC>& img, int x, int y, int w, int h, const Pixel<K,CC>& color)
+	void PaintBox(Image<K,CC>& img, int x, int y, int w, int h, const Pixel<K,CC>& color)
 	{
 		const int x0 = std::max<int>(0, x);
 		const int x1 = std::min<int>(img.width(), x+w+1);
@@ -264,7 +296,7 @@ namespace slimage
 	}
 
 	template<typename K, unsigned CC>
-	void FillBox(const Image<K,CC>& img, int x, int y, int w, int h, const Pixel<K,CC>& color)
+	void FillBox(Image<K,CC>& img, int x, int y, int w, int h, const Pixel<K,CC>& color)
 	{
 		const int x0 = std::max<int>(0, x);
 		const int x1 = std::min<int>(img.width(), x+w+1);

@@ -20,7 +20,7 @@ namespace slimage
 	}
 
 	template<typename K, unsigned CC>
-	inline void GuiShow(const std::string& caption, const Image<K,CC>& img, unsigned int delay=10)
+	inline void GuiShow(const std::string& caption, const Image<K,CC>& img, unsigned int delay=3)
 	{
 		cv::imshow(caption.c_str(), ConvertToOpenCv(img));
 		cv::waitKey(delay); // need to wait a bit, otherwise image is not displayed properly
