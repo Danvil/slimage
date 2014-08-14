@@ -174,12 +174,16 @@ struct Pixel
 };
 
 // FIXME implement
-template<typename K> struct Pixel<Traits<K,0>>;
+template<typename K>
+struct Pixel<Traits<K,0>>;
 
 template<typename K>
 struct Pixel<Traits<K,1>>
 {
 	K value;
+
+	Pixel(K x)
+	: value(x) {}
 
 	std::size_t size() const {
 		return 1;
@@ -351,7 +355,11 @@ struct PixelAccess<Traits<K,1>>
 		return p;
 	}
 
-	operator const K() const {
+	operator const K&() const {
+		return *p;
+	}
+
+	operator K&() {
 		return *p;
 	}
 
@@ -417,7 +425,8 @@ struct PixelAccess<Traits<K,1>>
 };
 
 // FIXME
-template<typename K> struct PixelAccess<Traits<K,0>>;
+template<typename K>
+struct PixelAccess<Traits<K,0>>;
 
 //----------------------------------------------------------------------------//
 }
