@@ -1,68 +1,15 @@
-/*
- * io.hpp
- *
- *  Created on: Feb 5, 2012
- *      Author: david
- */
+#pragma once
 
-#ifndef SLIMAGE_IO_HPP_
-#define SLIMAGE_IO_HPP_
-
-#include <string>
-#include <stdexcept>
-
-namespace slimage
-{
-
-	struct IoException
-	: public std::runtime_error
-	{
-	public:
-		IoException(const std::string& filename, const std::string& msg)
-		: std::runtime_error("Error with file '" + filename + "': " + msg) {}
-	};
-
-}
-
-#if defined SLIMAGE_IO_QT
-	#include "detail/Qt.hpp"
-#elif defined SLIMAGE_IO_OPENCV
-	#include "detail/OpenCv.hpp"
-#endif
-
-#if defined SLIMAGE_IO_GZ
-#include <Danvil/IO/Z.h>
-#endif
-
+#include <slimage/image.hpp>
+#include <slimage/types.hpp>
+#include <slimage/error.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <fstream>
+#include <vector>
 
 namespace slimage
 {
-
-#if defined SLIMAGE_IO_QT
-
-	inline void Save(const ImagePtr& img, const std::string& filename) {
-		qt::Save(img, filename);
-	}
-
-	inline ImagePtr Load(const std::string& filename) {
-		return qt::Load(filename);
-	}
-
-#elif defined SLIMAGE_IO_OPENCV
-
-	inline void Save(const ImagePtr& img, const std::string& filename) {
-		opencv::Save(img, filename);
-	}
-
-	inline ImagePtr Load(const std::string& filename) {
-		return opencv::Load(filename);
-	}
-
-#endif
-
 	inline
 	bool ReadDataLine(std::istream& is, std::string& line)
 	{
@@ -167,50 +114,4 @@ namespace slimage
 			}
 		}
 	}
-
-#if defined SLIMAGE_IO_GZ
-	inline Image1ui16 Load16BitGZ(const std::string& filename) {
-		// custom gzip loading!
-		PTR(Danvil::ZIO::Handle) h = Danvil::ZIO::FactorReadHandle(filename);
-		size_t width, height, channels, type;
-		h->read(width);
-		h->read(height);
-		h->read(channels);
-		h->read(type);
-		assert(channels == 1);
-		assert(type == 3);
-		Image1ui16 img(width, height);
-		h->read_raw(static_cast<void*>(img.begin()), width*height*2);
-		return img;
-	}
-#endif
-
-	inline void Save(const Image1ub& img, const std::string& filename) {
-		Save(Ptr(img), filename);
-	}
-
-	inline void Save(const Image3ub& img, const std::string& filename) {
-		Save(Ptr(img), filename);
-	}
-
-	inline void Save(const Image4ub& img, const std::string& filename) {
-		Save(Ptr(img), filename);
-	}
-
-	inline Image1ub Load1ub(const std::string& filename) {
-		return Ref<unsigned char, 1>(Load(filename));
-	}
-
-	inline Image3ub Load3ub(const std::string& filename) {
-		return Ref<unsigned char, 3>(Load(filename));
-	}
-
-	inline Image4ub Load4ub(const std::string& filename) {
-		return Ref<unsigned char, 4>(Load(filename));
-	}
-
 }
-
-//#endif
-
-#endif
