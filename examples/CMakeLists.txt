@@ -10,6 +10,7 @@ ENDFUNCTION(CreateExampleOpenCv)
 CreateExampleOpenCv(view)
 CreateExampleOpenCv(opencv_to_slimage)
 CreateExampleOpenCv(slimage_to_opencv)
+CreateExampleOpenCv(foo)
 
 
 find_package(Qt4 REQUIRED)
