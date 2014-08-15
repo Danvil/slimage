@@ -12,6 +12,7 @@ int main(int argc, char** argv)
 	auto aimg = slimage::ConvertToSlimage(mat);
 	if(!slimage::anonymous_is<unsigned char,3>(aimg)) {
 		// error image is not of desired type
+		return 1;
 	}
 	slimage::Image3ub img = *slimage::anonymous_cast<unsigned char,3>(aimg);
 
