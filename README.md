@@ -7,7 +7,7 @@ slimage is a slim image library which provides a template image type for represe
 
  * slim -- does one thing and does it well
  * type-safe -- strongly typed image / pixel / iterators
- * reusable -- proper iterator interface to connect with STL functions like `<algorithm>`
+ * iterators -- proper iterator interface to connect with STL functions like `<algorithm>`
  * extendable -- can interface with OpenCV and QT
  * header only -- no build required
  * modern -- uses C++11 for elegant design
