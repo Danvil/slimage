@@ -205,7 +205,7 @@ namespace slimage
 	std::shared_ptr<Image<K,CC>> anonymous_cast(const AnonymousImage& aimg)
 	{
 		auto p = std::dynamic_pointer_cast<detail::AnonymousImpl<K,CC>>(aimg);
-		if(!p) { // TODO why cast?
+		if(!p) {
 			return {};
 		}
 		else {
