@@ -16,7 +16,7 @@ namespace slimage
 			using type = Image<K,1>;
 		};
 
-		template<typename K, unsigned CC>
+		template<typename K, std::size_t CC>
 		struct ImageFromPixelType<std::array<K,CC>>
 		{
 			using type = Image<K,CC>;
