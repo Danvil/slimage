@@ -43,47 +43,47 @@ namespace slimage
 	}
 
 	inline
-	QImage* ConvertToQt(const Image1ub& mask)
+	QImage ConvertToQt(const Image1ub& mask)
 	{
 		unsigned int h = mask.height();
 		unsigned int w = mask.width();
-		QImage* imgQt = new QImage(w, h, QImage::Format_Indexed8);
+		QImage imgQt(w, h, QImage::Format_Indexed8);
 		QVector<QRgb> colors(256);
 		for(unsigned int i=0; i<=255; i++) {
 			colors[i] = qRgb(i,i,i);
 		}
-		imgQt->setColorTable(colors);
+		imgQt.setColorTable(colors);
 		for(uint i=0; i<h; i++) {
 			const unsigned char* src = mask.pixel_pointer(0, i);
-			unsigned char* dst = imgQt->scanLine(i);
+			unsigned char* dst = imgQt.scanLine(i);
 			std::copy(src, src + w, dst);
 		}
 		return imgQt;
 	}
 
 	inline
-	QImage* ConvertToQt(const Image3ub& img)
+	QImage ConvertToQt(const Image3ub& img)
 	{
 		unsigned int h = img.height();
 		unsigned int w = img.width();
-		QImage* imgQt = new QImage(w, h, QImage::Format_RGB32);
+		QImage imgQt(w, h, QImage::Format_RGB32);
 		for(unsigned int i=0; i<h; i++) {
 			const unsigned char* src = img.pixel_pointer(0, i);
-			unsigned char* dst = imgQt->scanLine(i);
+			unsigned char* dst = imgQt.scanLine(i);
 			detail::copy_RGB_to_BGRA_8bit(src, src + 3*w, dst, 255);
 		}
 		return imgQt;
 	}
 
 	inline
-	QImage* ConvertToQt(const Image4ub& img)
+	QImage ConvertToQt(const Image4ub& img)
 	{
 		unsigned int h = img.height();
 		unsigned int w = img.width();
-		QImage* imgQt = new QImage(w, h, QImage::Format_ARGB32);
+		QImage imgQt(w, h, QImage::Format_ARGB32);
 		for(unsigned int i=0; i<h; i++) {
 			const unsigned char* src = img.pixel_pointer(0, i);
-			unsigned char* dst = imgQt->scanLine(i);
+			unsigned char* dst = imgQt.scanLine(i);
 			detail::copy_RGBA_to_BGRA_8bit(src, src + 4*w, dst);
 		}
 		return imgQt;
@@ -91,7 +91,7 @@ namespace slimage
 
 
 	inline
-	QImage* ConvertToQt(const AnonymousImage& aimg)
+	QImage ConvertToQt(const AnonymousImage& aimg)
 	{
 		if(anonymous_is<unsigned char,1>(aimg)) {
 			return ConvertToQt(*anonymous_cast<unsigned char, 1>(aimg));
@@ -109,7 +109,7 @@ namespace slimage
 	}
 
 	inline
-	AnonymousImage ConvertFromQt(const QImage& qimg)
+	AnonymousImage ConvertToSlimage(const QImage& qimg)
 	{
 //		std::cout << qimg.format() << std::endl;
 		if(qimg.format() == QImage::Format_Indexed8) {
@@ -146,7 +146,7 @@ namespace slimage
 			return make_anonymous(img);
 		}
 		else {
-			throw new ConversionException("Invalid type of QImage for ConvertFromQt");
+			throw new ConversionException("Invalid type of QImage for ConvertToSlimage(QImage)");
 			//return AnonymousImage{};
 		}
 	}
@@ -154,17 +154,13 @@ namespace slimage
 	inline
 	void QtSave(const std::string& filename, const AnonymousImage& img)
 	{
-		QImage* qimg = ConvertToQt(img);
-		if(qimg) {
-			qimg->save(QString::fromStdString(filename));
-		}
-		delete qimg;
+		ConvertToQt(img).save(QString::fromStdString(filename));
 	}
 
 	inline
 	AnonymousImage QtLoad(const std::string& filename)
 	{
-		return ConvertFromQt(QImage(QString::fromStdString(filename)));
+		return ConvertToSlimage(QImage(QString::fromStdString(filename)));
 	}
 
 }

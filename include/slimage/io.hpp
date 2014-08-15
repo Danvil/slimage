@@ -4,6 +4,11 @@
 #include <slimage/image.hpp>
 #include <string>
 
+#if !defined SLIMAGE_OPENCV_INC && !defined SLIMAGE_QT_INC
+#  error Include either slimage/opencv.hpp or slimage/qt.hpp BEFORE slimage/io.hpp
+#endif
+
+
 namespace slimage
 {
 
@@ -15,7 +20,7 @@ namespace slimage
 #elif defined SLIMAGE_QT_INC
 		return QtLoad(fn);
 #else
-		static_assert(false, "Include either slimage/opencv.hpp or slimage/qt.hpp to load images");
+		return AnonymousImage{};
 #endif
 	}
 
@@ -23,11 +28,9 @@ namespace slimage
 	void Save(const std::string& fn, const AnonymousImage& aimg)
 	{
 #if defined SLIMAGE_OPENCV_INC
-		return OpenCvSave(fn, aimg);
+		OpenCvSave(fn, aimg);
 #elif defined SLIMAGE_QT_INC
-		return QtSave(fn, aimg);
-#else
-		static_assert(false, "Include either slimage/opencv.hpp or slimage/qt.hpp to save images");
+		QtSave(fn, aimg);
 #endif
 	}
 
