@@ -4,7 +4,7 @@
 #  include <slimage/opencv.hpp>
 #  define SLIMAGE_OPENCV_INC_UNDO
 #endif
-
+#include <slimage/algorithm.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <string>
 
@@ -30,6 +30,11 @@ namespace slimage
 		cv::waitKey(delay); // need to wait a bit, otherwise image is not displayed properly
 	}
 
+	inline
+	void GuiShow(const std::string& caption, const slimage::Image1f& img, unsigned int delay=3)
+	{
+		GuiShow(caption, Convert(img, [](float v) { return static_cast<unsigned char>(255.0f*v); }), delay);
+	}
 
 }
 
