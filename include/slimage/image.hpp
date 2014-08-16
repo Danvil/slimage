@@ -2,6 +2,7 @@
 
 #include <slimage/pixel.hpp>
 #include <slimage/iterator.hpp>
+#include <slimage/error.hpp>
 #include <algorithm>
 #include <tuple>
 #include <vector>
@@ -78,13 +79,17 @@ namespace slimage
 		unsigned channelCount() const
 		{ return CC; }
 
-		/** Number of pixels, i.e. width*height */
+		/** Number of pixels, i.e. width()*height() */
 		size_t size() const
 		{ return width_*height_; }
 
-		/** Number of elements, i.e. width*height*channelCount() */
-		size_t elementCount() const
+		/** Number of elements in the whole image, i.e. width()*height()*channelCount() */
+		size_t numElementsImage() const
 		{ return data_.size(); }
+
+		/** Number of elements in a line, i.e. width()*channelCount() */
+		size_t numElementsScanline() const
+		{ return CC*width_; }
 
 		reference_t operator[](idx_t i)
 		//{ return make_ref(pixel_pointer(i), Integer<CC>()); }
@@ -182,6 +187,10 @@ namespace slimage
 			:	img(img)
 			{}
 
+			AnonymousImpl(Image<K,CC>&& img)
+			:	img(std::forward(img))
+			{}
+
 			unsigned width() const
 			{ return img.width(); }
 
@@ -202,19 +211,21 @@ namespace slimage
 	{ return static_cast<bool>(std::dynamic_pointer_cast<detail::AnonymousImpl<K,CC>>(aimg)); }
 
 	template<typename K, unsigned CC>
-	std::shared_ptr<Image<K,CC>> anonymous_cast(const AnonymousImage& aimg)
+	Image<K,CC> anonymous_cast(const AnonymousImage& aimg)
 	{
 		auto p = std::dynamic_pointer_cast<detail::AnonymousImpl<K,CC>>(aimg);
 		if(!p) {
-			return {};
+			throw CastException();
 		}
-		else {
-			return std::make_shared<Image<K,CC>>(p->img);
-		}
+		return p->img;
 	}
 
 	template<typename K, unsigned CC>
 	AnonymousImage make_anonymous(const Image<K,CC>& img)
+	{ return std::make_shared<detail::AnonymousImpl<K,CC>>(img); }
+
+	template<typename K, unsigned CC>
+	AnonymousImage make_anonymous(Image<K,CC>&& img)
 	{ return std::make_shared<detail::AnonymousImpl<K,CC>>(img); }
 
 }

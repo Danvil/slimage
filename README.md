@@ -52,7 +52,7 @@ auto aimg = slimage::ConvertToSlimage(mat);
 if(!slimage::anonymous_is<unsigned char,3>(aimg)) {
 	// error image is not of desired type
 }
-slimage::Image3ub img = *slimage::anonymous_cast<unsigned char,3>(aimg);
+slimage::Image3ub img = slimage::anonymous_cast<unsigned char,3>(aimg);
 
 // do something
 for(unsigned x=0; x<img.width(); x++) {

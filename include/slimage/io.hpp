@@ -37,7 +37,14 @@ namespace slimage
 	#define SLIMAGE_IO_LOAD_HELP(K,CC,S) \
 		inline \
 		slimage::Image##CC##S Load##CC##S(const std::string& fn) \
-		{ return *anonymous_cast<K,CC>(Load(fn)); }
+		{ \
+			try { \
+				return anonymous_cast<K,CC>(Load(fn)); \
+			} \
+			catch(CastException& ce) { \
+				throw IoException(fn, "Image does not have specified type"); \
+			} \
+		}
 
 	#define SLIMAGE_IO_SAVE_HELP(K,CC,S) \
 		inline \

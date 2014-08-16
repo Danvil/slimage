@@ -14,11 +14,15 @@ int main(int argc, char** argv)
 		// error image is not of desired type
 		return 1;
 	}
-	slimage::Image3ub img = *slimage::anonymous_cast<unsigned char,3>(aimg);
+	slimage::Image3ub img = slimage::anonymous_cast<unsigned char,3>(aimg);
 
 	// do something
 	for(unsigned x=0; x<img.width(); x++) {
-		slimage::Pixel3ub col{0, (x * 16) % 255, (x * 8) % 255};
+		slimage::Pixel3ub col{
+			0,
+			static_cast<unsigned char>((x * 16) % 255),
+			static_cast<unsigned char>((x *  8) % 255)
+		};
 		for(unsigned y=0; y<16; y++) {
 			img(x, y) = col;
 		}
@@ -26,7 +30,7 @@ int main(int argc, char** argv)
 
 	// convert to OpenCV image and save
 	mat = slimage::ConvertToOpenCv(img);
-	cv::imwrite("/tmp/test.jpg", mat);
+	cv::imwrite("/tmp/slimage-test.jpg", mat);
 	
 	return 0;
 }

@@ -11,6 +11,7 @@ CreateExampleOpenCv(view)
 CreateExampleOpenCv(opencv_to_slimage)
 CreateExampleOpenCv(slimage_to_opencv)
 CreateExampleOpenCv(foo)
+CreateExampleOpenCv(lena_opencv)
 
 
 find_package(Qt4 REQUIRED)
@@ -24,3 +25,4 @@ FUNCTION(CreateExampleQt NAME)
 ENDFUNCTION(CreateExampleQt)
 
 CreateExampleQt(qt)
+CreateExampleQt(lena_qt)

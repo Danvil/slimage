@@ -51,6 +51,94 @@ namespace slimage
 		return dst;
 	}
 
+	template<typename K>
+	void Copy_RGBA_to_BGRA(const K* src, const K* src_end, K* dst)
+	{
+		// FIXME this is probably not very performant
+		for(; src != src_end; src+=4, dst+=4) {
+			dst[0] = src[2];
+			dst[1] = src[1];
+			dst[2] = src[0];
+			dst[3] = src[3];
+		}
+	}
+
+	template<typename K>
+	void Copy_RGBA_to_BGR(const K* src, const K* src_end, K* dst)
+	{
+		// FIXME this is probably not very performant
+		for(; src != src_end; src+=4, dst+=3) {
+			dst[0] = src[2];
+			dst[1] = src[1];
+			dst[2] = src[0];
+		}
+	}
+
+	template<typename K>
+	void Copy_RGB_to_BGRA(const K* src, const K* src_end, K* dst, K alpha)
+	{
+		// FIXME this is probably not very performant
+		for(; src != src_end; src+=3, dst+=4) {
+			dst[0] = src[2];
+			dst[1] = src[1];
+			dst[2] = src[0];
+			dst[3] = alpha;
+		}
+	}
+
+	template<typename K>
+	void Copy_RGB_to_BGR(const K* src, const K* src_end, K* dst)
+	{
+		// FIXME this is probably not very performant
+		for(; src != src_end; src+=3, dst+=3) {
+			dst[0] = src[2];
+			dst[1] = src[1];
+			dst[2] = src[0];
+		}
+	}
+
+	template<typename K, unsigned CC, typename F1, typename F2>
+	void CopyScanlines(const Image<K,CC>& src, F1 fdst, F2 fcpy)
+	{
+		const size_t n = src.numElementsScanline();
+		for(unsigned y=0; y<src.height(); y++) {
+			const K* p = src.pixel_pointer(0,y);
+			fcpy(p, p+n, fdst(y));
+		}
+	}
+
+	template<typename K, unsigned CC, typename F1>
+	void CopyScanlines(const Image<K,CC>& src, F1 fdst)
+	{
+		CopyScanlines(src, fdst, std::copy<const K*,K*>);
+		// const size_t n = src.numElementsScanline();
+		// for(unsigned y=0; y<src.height(); y++) {
+		// 	const K* p = src.pixel_pointer(0,y);
+		// 	std::copy(p, p+n, fdst(y));
+		// }
+	}
+
+	template<typename K, unsigned CC, typename F1, typename F2>
+	void CopyScanlines(F1 fsrc, Image<K,CC>& dst, F2 fcpy)
+	{
+		const size_t n = dst.numElementsScanline();
+		for(unsigned y=0; y<dst.height(); y++) {
+			K* p = dst.pixel_pointer(0,y);
+			fcpy(fsrc(y), fsrc(y)+n, p);
+		}
+	}
+
+	template<typename K, unsigned CC, typename F1>
+	void CopyScanlines(F1 fsrc, const Image<K,CC>& dst)
+	{
+		CopyScanlines(fsrc, dst, std::copy<const K*,K*>);
+		// const size_t n = dst.numElementsScanline();
+		// for(unsigned y=0; y<dst.height(); y++) {
+		// 	const K* p = dst.pixel_pointer(0,y);
+		// 	 std::copy(fsrc(y), fsrc(y)+n, p);
+		// }
+	}
+
 	template<typename K, unsigned CC>
 	Image<K,1> PickChannel(const Image<K,CC>& img, unsigned c)
 	{
