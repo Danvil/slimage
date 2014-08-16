@@ -136,13 +136,13 @@ namespace slimage
 
 		element_t* pixel_pointer(size_t i)
 		{
-			assert(i < data_.size());
+			assert(i <= size()); // TODO this is a bit of a hack but we need to support end()
 			return data_.data() + CC*i;
 		} 
 
 		const element_t* pixel_pointer(size_t i) const
 		{
-			assert(i < data_.size());
+			assert(i <= size()); // TODO this is a bit of a hack but we need to support end()
 			return data_.data() + CC*i;
 		} 
 
