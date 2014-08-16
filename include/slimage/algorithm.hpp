@@ -54,6 +54,9 @@ namespace slimage
 	template<typename K>
 	Image1f Rescale(const Image<K,1>& img, float min, float max)
 	{
+		if(min == max) {
+			return Image1f(img.dimensions(), 0.5f);
+		}
 		float scl = 1.0f / (max - min);
 		return Convert(img, [scl,min](float v) { return std::min(std::max(0.0f,scl*(v - min)),1.0f); });
 	}
@@ -65,6 +68,9 @@ namespace slimage
 		for(float v : img) {
 			min = std::min(min, v);
 			max = std::max(max, v);
+		}
+		if(min == max) {
+			return Image1f(img.dimensions(), 0.5f);
 		}
 		float scl = 1.0f / (max - min);
 		return Convert(img, [scl,min](float v) { return scl*(v - min); });
