@@ -52,6 +52,25 @@ namespace slimage
 	}
 
 	template<typename K>
+	Image1f Rescale(const Image<K,1>& img, float min, float max)
+	{
+		float scl = 1.0f / (max - min);
+		return Convert(img, [scl,min](float v) { return std::min(std::max(0.0f,scl*(v - min)),1.0f); });
+	}
+
+	template<typename K>
+	Image1f Rescale(const Image<K,1>& img)
+	{
+		float min = img[0], max = img[0];
+		for(float v : img) {
+			min = std::min(min, v);
+			max = std::max(max, v);
+		}
+		float scl = 1.0f / (max - min);
+		return Convert(img, [scl,min](float v) { return scl*(v - min); });
+	}
+
+	template<typename K>
 	void Copy_RGBA_to_BGRA(const K* src, const K* src_end, K* dst)
 	{
 		// FIXME this is probably not very performant
