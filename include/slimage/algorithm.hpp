@@ -347,13 +347,8 @@ namespace slimage
 	}
 
 	template<typename K, unsigned CC>
-	void PaintEllipse(Image<K,CC>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<K,CC>& color)
+	void PaintEllipse(Image<K,CC>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<K,CC>& color, unsigned N=16)
 	{
-	//	PaintLine(img, cx+ux+vx, cy+uy+vy, cx+ux-vx, cy+uy-vy, color);
-	//	PaintLine(img, cx+ux-vx, cy+uy-vy, cx-ux-vx, cy-uy-vy, color);
-	//	PaintLine(img, cx-ux-vx, cy-uy-vy, cx-ux+vx, cy-uy+vy, color);
-	//	PaintLine(img, cx-ux+vx, cy-uy+vy, cx+ux+vx, cy+uy+vy, color);
-		const unsigned int N = 16;
 		int last_x = cx + ux;
 		int last_y = cy + uy;
 		for(unsigned int i=1; i<=N; i++) {
@@ -369,22 +364,16 @@ namespace slimage
 	}
 
 	template<typename K, unsigned CC>
-	void FillEllipse(Image<K,CC>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<K,CC>& color)
+	void FillEllipse(Image<K,CC>& img, int cx, int cy, int ux, int uy, int vx, int vy, const Pixel<K,CC>& color, unsigned N=16)
 	{
 		// FIXME implement filling!
-		const unsigned int N = 16;
-		int last_x = cx + ux;
-		int last_y = cy + uy;
-		for(unsigned int i=1; i<=N; i++) {
-			float phi = static_cast<float>(i) / static_cast<float>(N) * 2.0f * M_PI;
-			float cp = std::cos(phi);
-			float sp = std::sin(phi);
-			int x = cx + static_cast<int>(cp*static_cast<float>(ux) + sp*static_cast<float>(vx));
-			int y = cy + static_cast<int>(cp*static_cast<float>(uy) + sp*static_cast<float>(vy));
-			PaintLine(img, last_x, last_y, x, y, color);
-			last_x = x;
-			last_y = y;
-		}
+		FillEllipse(img, cx, cy, ux, uy, vx, vy, color, N);
+	}
+
+	template<typename K, unsigned CC>
+	void FillCircle(Image<K,CC>& img, int cx, int cy, int r, const Pixel<K,CC>& color, unsigned N=16)
+	{
+		FillEllipse(img, cx, cy, r, 0, 0, r, color, N);
 	}
 
 	template<typename K, unsigned CC>
@@ -415,9 +404,9 @@ namespace slimage
 		const int x1 = std::min<int>(img.width(), x+w+1);
 		const int y0 = std::max<int>(0, y);
 		const int y1 = std::min<int>(img.height(), y+h+1);
-		for(int i=x0; i<x1; i++) {
-			for(int j=y0; j<y1; j++) {
-				img(i,j) = color;
+		for(int i=y0; i<y1; i++) {
+			for(int j=x0; j<x1; j++) {
+				img(j,i) = color;
 			}
 		}
 	}
