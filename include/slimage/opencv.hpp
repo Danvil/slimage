@@ -97,14 +97,14 @@ namespace slimage
 		#undef SLIMAGE_ConvertToOpenCv_HELPER
 	}
 
-	#define TOSTRING(X) #X
-
 	/** Converts an OpenCV image to a typed slimage image */
 	template<typename K, unsigned CC>
 	Image<K,CC> ConvertToSlimage(const cv::Mat& mat)
 	{
+		#define TOSTRING(X) #X
 		if(mat.type() != detail::OpenCvImageType<K,CC>::value)
 			throw ConversionException("cv::Mat does not have expected type: element_type=" TOSTRING(K) ", channel count=" TOSTRING(CC));
+		#undef TOSTRING
 		Image<K,CC> img(mat.cols, mat.rows);
 		CopyScanlines(
 			[&mat](unsigned y) { return mat.ptr<K>(y,0); },
