@@ -1,6 +1,8 @@
 slimage
 =======
 
+*Copyright 2012-2014 by David Weikersdorfer*
+
 slimage is a slim image library which provides a template image type for representing 2D images. slimage does not provide any computer vision functionality.
 
 **Features**:
