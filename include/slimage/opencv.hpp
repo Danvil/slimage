@@ -73,6 +73,8 @@ namespace slimage
 
 	SLIMAGE_OPENCV_IMG_TYPE_BATCH(unsigned char, CV_8U)
 	SLIMAGE_OPENCV_IMG_TYPE_BATCH(uint16_t, CV_16U)
+	SLIMAGE_OPENCV_IMG_TYPE_BATCH(int, CV_32S)
+	SLIMAGE_OPENCV_IMG_TYPE_BATCH(float, CV_32F)
 
 	#undef SLIMAGE_OPENCV_IMG_TYPE_BATCH
 	#undef SLIMAGE_OPENCV_CONVERSION_FUNCTIONS
@@ -91,6 +93,8 @@ namespace slimage
 		
 		SLIMAGE_ConvertToOpenCv_HELPER_BATCH(unsigned char)
 		SLIMAGE_ConvertToOpenCv_HELPER_BATCH(uint16_t)
+		SLIMAGE_ConvertToOpenCv_HELPER_BATCH(int)
+		SLIMAGE_ConvertToOpenCv_HELPER_BATCH(float)
 		throw ConversionException("Invalid type of AnonymousImage for ConvertToOpenCv");
 		
 		#undef SLIMAGE_ConvertToOpenCv_HELPER_BATCH
@@ -119,14 +123,14 @@ namespace slimage
 	inline
 	void OpenCvSave(const std::string& filename, const AnonymousImage& img)
 	{
-		cv::imwrite(filename, ConvertToOpenCv(img)); // FIXME correct error handling?
+		cv::imwrite(filename, ConvertToOpenCv(img)); // TODO correct error handling?
 	}
 
 	inline
 	AnonymousImage OpenCvLoad(const std::string& filename)
 	{
-		cv::Mat mat = cv::imread(filename); // FIXME correct error handling?
-		if(mat.rows == 0 && mat.cols == 0) { // TODO what is the correct condition?
+		cv::Mat mat = cv::imread(filename); // TODO correct error handling?
+		if(mat.empty()) {
 			throw IoException(filename, "Empty image (does the file exists?)");
 		}
 		return ConvertToSlimage(mat);
