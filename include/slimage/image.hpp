@@ -108,16 +108,16 @@ namespace slimage
 		{ return *(begin() + index(x,y)); }
 
 		iterator_t begin()
-		{ return iterator_t{pixel_pointer(0)}; }
+		{ return iterator_t{pixel_pointer()}; }
 
 		iterator_t end()
-		{ return iterator_t{pixel_pointer(size())}; }
+		{ return iterator_t{pixel_pointer() + CC*size()}; }
 
 		const_iterator_t begin() const
-		{ return const_iterator_t{pixel_pointer(0)}; }
+		{ return const_iterator_t{pixel_pointer()}; }
 
 		const_iterator_t end() const
-		{ return const_iterator_t{pixel_pointer(size())}; }
+		{ return const_iterator_t{pixel_pointer() + CC*size()}; }
 
 		bool isValidIndex(idx_t x, idx_t y) const
 		{ return 0 <= x && x < width_ && 0 <= y && y < height_; }
@@ -134,15 +134,15 @@ namespace slimage
 		const element_t* pixel_pointer(idx_t x, idx_t y) const
 		{ return data_.data() + CC*index(x,y); } 
 
-		element_t* pixel_pointer(size_t i)
+		element_t* pixel_pointer(size_t i=0)
 		{
-			assert(i <= size()); // TODO this is a bit of a hack but we need to support end()
+			assert(i < size()); // TODO this is a bit of a hack but we need to support end()
 			return data_.data() + CC*i;
 		} 
 
-		const element_t* pixel_pointer(size_t i) const
+		const element_t* pixel_pointer(size_t i=0) const
 		{
-			assert(i <= size()); // TODO this is a bit of a hack but we need to support end()
+			assert(i < size()); // TODO this is a bit of a hack but we need to support end()
 			return data_.data() + CC*i;
 		} 
 
