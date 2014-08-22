@@ -188,15 +188,19 @@ namespace slimage
 	Image<K,CC> SubImage(const Image<K,CC>& img, unsigned x, unsigned y, unsigned w, unsigned h)
 	{
 		Image<K,CC> result(w, h);	
-		throw 0; // FIXME
+		for(unsigned i=0; i<h; i++) {
+			auto p = img.pixel_pointer(x,y+i);
+			std::copy(p, p+CC*w, result.pixel_pointer(0,i));
+		}
 		return result;
 	}
 
 	template<typename K, unsigned CC>
 	Image<K,CC> FlipY(const Image<K,CC>& img)
 	{
+		const unsigned height = img.height();
 		Image<K,CC> result(img.dimensions());
-		throw 0; // FIXME
+		CopyScanlines(img, [&result,height](unsigned y) { return result.pixel_pointer(0,height-1-y); });
 		return result;
 	}
 
